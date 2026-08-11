@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
+import os
 import ssl
 import sys
 import time
@@ -15,14 +16,20 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from regression_assertions import contains_text, evaluate_assertions, get_match_mode
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("cases", type=Path, help="测试用例JSON对象数组")
     parser.add_argument("results", type=Path, help="结果JSON输出路径")
     parser.add_argument("--url", required=True, help="chat/completions接口URL")
-    parser.add_argument("--app-id", required=True)
-    parser.add_argument("--share-id", required=True)
+    app_id_group = parser.add_mutually_exclusive_group(required=True)
+    app_id_group.add_argument("--app-id")
+    app_id_group.add_argument("--app-id-env", help="从指定环境变量读取appId，避免写入脚本或命令历史")
+    share_id_group = parser.add_mutually_exclusive_group(required=True)
+    share_id_group.add_argument("--share-id")
+    share_id_group.add_argument("--share-id-env", help="从指定环境变量读取shareId，避免写入脚本或命令历史")
     parser.add_argument("--gap-seconds", type=float, default=3.0, help="一次响应结束后的冷却秒数")
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     parser.add_argument("--mode", choices=("regression", "stress"), default="regression")
@@ -31,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--round-gap-seconds", type=float, default=10.0, help="压力测试轮次间冷却秒数")
     parser.add_argument("--stage-label", default="", help="写入结果和汇总的测试阶段标签")
     parser.add_argument("--summary-output", type=Path, help="汇总JSON路径；默认与结果文件同名并添加.summary")
+    parser.add_argument("--shareable-summary-output", type=Path, help="可选脱敏汇总路径；不包含问题、答案、节点、来源、变量或本地证据路径")
     parser.add_argument("--authorization-env", help="可选Bearer Token环境变量名")
     return parser.parse_args()
 
@@ -42,7 +50,24 @@ def load_cases(path: Path) -> list[dict[str, Any]]:
     for item in value:
         if not item.get("case_id") or not isinstance(item.get("turns"), list) or not item["turns"]:
             raise ValueError("每个用例必须包含case_id和非空turns数组")
+        get_match_mode(item)
+        for turn in item["turns"]:
+            if not isinstance(turn, dict):
+                raise ValueError(f"{item['case_id']}: turns每项必须是对象")
+            get_match_mode({**item, **turn})
     return value
+
+
+def resolve_identifier(value: str | None, env_name: str | None, label: str) -> str:
+    if env_name:
+        resolved = os.environ.get(env_name, "").strip()
+        if not resolved:
+            raise ValueError(f"环境变量{env_name}未设置或为空，无法读取{label}")
+        return resolved
+    resolved = str(value or "").strip()
+    if not resolved:
+        raise ValueError(f"{label}不能为空")
+    return resolved
 
 
 def parse_sse(response) -> dict[str, Any]:
@@ -111,15 +136,18 @@ def parse_sse(response) -> dict[str, Any]:
 def infer_route(nodes: list[str], answer: str, turn: dict[str, Any]) -> str:
     """按用例声明的通用标记推断路由，避免在脚本中固化业务分类。"""
     joined = "\n".join(nodes)
+    match_mode = get_match_mode(turn)
     route_markers = turn.get("route_markers", {})
     if isinstance(route_markers, dict):
         for route, raw_markers in route_markers.items():
             markers = raw_markers if isinstance(raw_markers, list) else [raw_markers]
-            if any(str(marker) in joined or str(marker) in answer for marker in markers):
+            if any(contains_text(joined, marker, match_mode) or contains_text(answer, marker, match_mode) for marker in markers):
                 return str(route)
     expected_route = str(turn.get("expected_route", "")).strip()
     required_nodes = [str(value) for value in turn.get("required_nodes", [])]
-    if expected_route and required_nodes and all(any(value in node for node in nodes) for value in required_nodes):
+    if expected_route and required_nodes and all(
+        any(contains_text(node, value, match_mode) for node in nodes) for value in required_nodes
+    ):
         return expected_route
     return "unknown"
 
@@ -139,7 +167,6 @@ def request_turn(args: argparse.Namespace, chat_id: str, uid: str,
     }
     headers = {"Content-Type": "application/json; charset=utf-8"}
     if args.authorization_env:
-        import os
         token = os.environ.get(args.authorization_env, "").strip()
         if not token:
             raise ValueError(f"环境变量{args.authorization_env}为空")
@@ -158,72 +185,19 @@ def request_turn(args: argparse.Namespace, chat_id: str, uid: str,
 
 
 def evaluate_turn(turn: dict[str, Any], result: dict[str, Any], route: str) -> dict[str, Any]:
-    answer = result["answer"]
-    missing = [str(value) for value in turn.get("expected_substrings", []) if str(value) not in answer]
-    missing_any_groups: list[list[str]] = []
-    for raw_group in turn.get("expected_any_groups", []):
-        group = [str(value) for value in raw_group] if isinstance(raw_group, list) else [str(raw_group)]
-        if group and not any(value in answer for value in group):
-            missing_any_groups.append(group)
-    forbidden = [str(value) for value in turn.get("forbidden_substrings", []) if str(value) in answer]
-    nodes = result["nodes"]
-    missing_nodes = [str(value) for value in turn.get("required_nodes", [])
-                     if not any(str(value) in node for node in nodes)]
-    forbidden_nodes = [str(value) for value in turn.get("forbidden_nodes", [])
-                       if any(str(value) in node for node in nodes)]
-    expected_route = str(turn.get("expected_route", "")).strip()
-    route_mismatch = bool(expected_route and route != expected_route)
-    runtime_failure_matches = [str(value) for value in turn.get("runtime_failure_substrings", [])
-                               if str(value) in answer]
-
-    runtime_anomaly_flags: list[str] = []
-    if result["errors"]:
-        runtime_anomaly_flags.append("transport_or_sse_error")
-    if not answer:
-        runtime_anomaly_flags.append("empty_answer")
-    min_answer_chars = turn.get("min_answer_chars")
-    if isinstance(min_answer_chars, (int, float)) and len(answer) < int(min_answer_chars):
-        runtime_anomaly_flags.append("answer_too_short")
-    min_node_count = turn.get("min_node_count")
-    if isinstance(min_node_count, (int, float)) and len(nodes) < int(min_node_count):
-        runtime_anomaly_flags.append("node_count_below_minimum")
-    if missing_nodes:
-        runtime_anomaly_flags.append("required_node_missing")
-    if forbidden_nodes:
-        runtime_anomaly_flags.append("forbidden_node_executed")
-    if runtime_failure_matches:
-        runtime_anomaly_flags.append("runtime_failure_text")
-
-    latency_ms = round(result["duration_seconds"] * 1000) if isinstance(result["duration_seconds"], (int, float)) else None
-    max_latency_ms = turn.get("max_latency_ms")
-    latency_exceeded = bool(isinstance(max_latency_ms, (int, float)) and
-                            isinstance(latency_ms, int) and latency_ms > int(max_latency_ms))
-    assertion_failed = bool(missing or missing_any_groups or forbidden or route_mismatch)
-    runtime_anomaly = bool(runtime_anomaly_flags)
-    return {
-        "missing": missing,
-        "missing_any_groups": missing_any_groups,
-        "forbidden": forbidden,
-        "missing_nodes": missing_nodes,
-        "forbidden_nodes": forbidden_nodes,
-        "route_mismatch": route_mismatch,
-        "runtime_failure_matches": runtime_failure_matches,
-        "runtime_anomaly_flags": runtime_anomaly_flags,
-        "assertion_failed": assertion_failed,
-        "runtime_anomaly": runtime_anomaly,
-        "latency_ms": latency_ms,
-        "latency_exceeded": latency_exceeded,
-    }
+    return evaluate_assertions(turn, result, route)
 
 
 def run_case(args: argparse.Namespace, case: dict[str, Any], run_id: str,
              round_number: int) -> list[dict[str, Any]]:
     case_id = str(case["case_id"])
+    case_defaults = {key: value for key, value in case.items() if key != "turns"}
     chat_id = f"api-regression-{run_id}-{case_id}-{uuid.uuid4().hex[:8]}"
     uid = f"shareChat-{chat_id}"
     messages: list[dict[str, str]] = []
     outputs: list[dict[str, Any]] = []
-    for index, turn in enumerate(case["turns"], 1):
+    for index, raw_turn in enumerate(case["turns"], 1):
+        turn = {**case_defaults, **raw_turn}
         question = str(turn.get("question", ""))
         messages.append({"role": "user", "content": question})
         started = time.perf_counter()
@@ -272,8 +246,16 @@ def run_case(args: argparse.Namespace, case: dict[str, Any], run_id: str,
             "runtime_anomaly_flags": evaluation["runtime_anomaly_flags"],
             "assertion_failed": evaluation["assertion_failed"],
             "runtime_anomaly": evaluation["runtime_anomaly"],
+            "answer_chars": evaluation["answer_chars"],
+            "answer_too_long": evaluation["answer_too_long"],
+            "latency_missing": evaluation["latency_missing"],
             "latency_exceeded": evaluation["latency_exceeded"],
-            "first_attempt_failed": bool(evaluation["assertion_failed"] or evaluation["runtime_anomaly"]),
+            "text_match_mode": evaluation["text_match_mode"],
+            "first_attempt_failed": bool(
+                evaluation["assertion_failed"]
+                or evaluation["runtime_anomaly"]
+                or evaluation["latency_exceeded"]
+            ),
         })
         if args.gap_seconds > 0:
             time.sleep(args.gap_seconds)
@@ -324,8 +306,48 @@ def summarize_results(results: list[dict[str, Any]], args: argparse.Namespace,
     }
 
 
+def build_shareable_summary(summary: dict[str, Any], results: list[dict[str, Any]]) -> dict[str, Any]:
+    """生成不携带业务正文和本地证据路径的可分享汇总。"""
+    return {
+        "schema_version": "1.0",
+        "run_id": summary["run_id"],
+        "started_at": summary["started_at"],
+        "mode": summary["mode"],
+        "workers": summary["workers"],
+        "gap_seconds": summary["gap_seconds"],
+        "rounds": summary["rounds"],
+        "cases_per_round": summary["cases_per_round"],
+        "turns": summary["turns"],
+        "first_attempt_failures": summary["first_attempt_failures"],
+        "assertion_failures": summary["assertion_failures"],
+        "runtime_anomalies": summary["runtime_anomalies"],
+        "transport_errors": summary["transport_errors"],
+        "empty_answers": summary["empty_answers"],
+        "latency_exceeded": summary["latency_exceeded"],
+        "latency_ms": summary["latency_ms"],
+        "per_round": summary["per_round"],
+        "case_status": [
+            {
+                "case_id": item["case_id"],
+                "round": item["round"],
+                "assertion_failed": bool(item["assertion_failed"]),
+                "runtime_anomaly": bool(item["runtime_anomaly"]),
+                "latency_exceeded": bool(item["latency_exceeded"]),
+                "latency_ms": item.get("latency_ms"),
+            }
+            for item in results
+        ],
+        "redaction": {
+            "omitted": ["question", "answer", "nodes", "sources", "variables", "errors", "local_paths"],
+            "note": "case_id也必须使用不含敏感信息的稳定测试编号",
+        },
+    }
+
+
 def main() -> int:
     args = parse_args()
+    args.app_id = resolve_identifier(args.app_id, args.app_id_env, "appId")
+    args.share_id = resolve_identifier(args.share_id, args.share_id_env, "shareId")
     if args.gap_seconds < 0:
         raise ValueError("gap-seconds不能为负数")
     if args.round_gap_seconds < 0:
@@ -363,6 +385,13 @@ def main() -> int:
     summary_path = args.summary_output or args.results.with_name(f"{args.results.stem}.summary.json")
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary["summary_output"] = str(summary_path)
+    if args.shareable_summary_output:
+        args.shareable_summary_output.parent.mkdir(parents=True, exist_ok=True)
+        args.shareable_summary_output.write_text(
+            json.dumps(build_shareable_summary(summary, results), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        summary["shareable_summary_output"] = str(args.shareable_summary_output)
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 1 if summary["first_attempt_failures"] else 0

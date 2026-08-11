@@ -11,17 +11,17 @@
 
 ## 每次发布
 
-以 `v1.1.0` 为例：
+以 `v1.2.0` 为例：
 
 ```powershell
 python skill/fastgpt-workflow-assistant/scripts/test_skill.py
 python skill/fastgpt-workflow-assistant/scripts/package_skill.py `
   skill/fastgpt-workflow-assistant `
-  dist/fastgpt-workflow-assistant-v1.1.0.zip `
+  dist/fastgpt-workflow-assistant-v1.2.0.zip `
   --enforce-versioned-name
-Copy-Item dist/fastgpt-workflow-assistant-v1.1.0.zip `
+Copy-Item dist/fastgpt-workflow-assistant-v1.2.0.zip `
   dist/fastgpt-workflow-assistant-latest.zip -Force
-Get-FileHash dist/fastgpt-workflow-assistant-v1.1.0.zip -Algorithm SHA256
+Get-FileHash dist/fastgpt-workflow-assistant-v1.2.0.zip -Algorithm SHA256
 ```
 
 把哈希写入仓库根目录 `latest.json`，并复制同一文件到 `dist/latest.json`。然后验证：
@@ -29,13 +29,13 @@ Get-FileHash dist/fastgpt-workflow-assistant-v1.1.0.zip -Algorithm SHA256
 ```powershell
 python skill/fastgpt-workflow-assistant/scripts/check_skill_version.py `
   --manifest latest.json `
-  --package dist/fastgpt-workflow-assistant-v1.1.0.zip `
+  --package dist/fastgpt-workflow-assistant-v1.2.0.zip `
   --json
 ```
 
-提交版本文件后创建带注释的 Tag `v1.1.0` 和 GitHub Release。上传以下三个附件：
+提交版本文件后创建带注释的 Tag `v1.2.0` 和 GitHub Release。上传以下三个附件：
 
-- `fastgpt-workflow-assistant-v1.1.0.zip`：不可变版本包，用于审计与回滚；
+- `fastgpt-workflow-assistant-v1.2.0.zip`：不可变版本包，用于审计与回滚；
 - `fastgpt-workflow-assistant-latest.zip`：固定文件名，始终指向最新版；
 - `latest.json`：固定文件名的机器可读发布清单。
 

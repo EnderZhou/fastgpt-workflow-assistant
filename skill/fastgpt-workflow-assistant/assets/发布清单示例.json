@@ -1,6 +1,6 @@
 {
   "skill": "fastgpt-workflow-assistant",
-  "skill_version": "1.1.0",
+  "skill_version": "1.2.0",
   "target_platform": "FastGPT-or-compatible",
   "target_version": "REQUIRED",
   "workflow_version": "0.0.0",

@@ -1,6 +1,6 @@
 # FastGPT工作流生成助手
 
-当前公开版本：`v1.1.0`（2026-08-11）。
+当前公开版本：`v1.2.0`（2026-08-11）。
 
 一个面向 FastGPT 及兼容自托管实例的开源 Codex Skill，用于把 AI 应用、Agent 和自动化工作流当作可版本化、可测试、可回滚的软件工程项目来开发。
 
@@ -17,6 +17,8 @@
 - 仅在项目确实使用知识库时审计文档结构、重复、长度、链接和可选安全策略。
 - 按主要任务模式生成核心、边界、失败、权限、安全、副作用和性能测试用例。
 - 通过 FastGPT 分享接口执行低频功能回归，并把首次失败与复测分开记录。
+- 使用统一断言内核评估接口执行结果和离线结果，支持 Unicode 规范化、节点、运行异常、长度和时延门禁。
+- 将原始测试证据与可分享脱敏摘要分级保存，避免在协作材料中暴露业务正文或本地路径。
 - 在用户授权且浏览器可用时，辅助完成非生产实例的导入、配置、运行和回读验证。
 - 内置语义化版本、版本一致性检查、SHA-256 校验、显式更新与回滚方案。
 
@@ -29,7 +31,7 @@
 - 版本清单：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json`
 - 最新安装包：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip`
 
-每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v1.1.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录。
+每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v1.2.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录。
 
 ### 从源码安装
 
@@ -86,14 +88,14 @@ python skill/fastgpt-workflow-assistant/scripts/check_skill_version.py `
 python skill/fastgpt-workflow-assistant/scripts/test_skill.py
 python skill/fastgpt-workflow-assistant/scripts/package_skill.py `
   skill/fastgpt-workflow-assistant `
-  dist/fastgpt-workflow-assistant-v1.1.0.zip `
+  dist/fastgpt-workflow-assistant-v1.2.0.zip `
   --enforce-versioned-name
 ```
 
 完整仓库压缩包：
 
 ```powershell
-python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v1.1.0.zip --force
+python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v1.2.0.zip --force
 ```
 
 ## 参与完善

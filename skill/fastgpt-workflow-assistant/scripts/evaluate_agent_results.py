@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""按期望路由、子串、禁止子串、长度和延迟评估 Agent 测试结果。"""
+"""使用与接口回归执行器一致的契约评估 Agent 测试结果。"""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import json
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+from regression_assertions import evaluate_assertions
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,56 +32,123 @@ def diagnostic(code: str, case_id: str, message: str) -> dict[str, str]:
     return {"code": code, "severity": "error", "case_id": case_id, "message": message}
 
 
+def flatten_cases(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """同时支持扁平用例和接口执行器使用的conversation/turns用例。"""
+    flattened: list[dict[str, Any]] = []
+    for case in cases:
+        turns = case.get("turns")
+        if not isinstance(turns, list):
+            flattened.append(case)
+            continue
+        conversation_id = str(case.get("case_id", ""))
+        base = {key: value for key, value in case.items() if key != "turns"}
+        for index, turn in enumerate(turns, 1):
+            if not isinstance(turn, dict):
+                raise ValueError(f"{conversation_id or '<missing>'}: turns[{index}]必须是对象")
+            item = {**base, **turn}
+            item["conversation_id"] = conversation_id
+            item["case_id"] = str(
+                turn.get("result_id")
+                or (conversation_id if len(turns) == 1 else f"{conversation_id}-{index}")
+            )
+            flattened.append(item)
+    return flattened
+
+
 def evaluate(cases: list[dict[str, Any]], results: list[dict[str, Any]]) -> dict[str, Any]:
     diagnostics: list[dict[str, str]] = []
-    result_by_id = {str(item.get("case_id")): item for item in results}
+    flattened_cases = flatten_cases(cases)
+    result_by_id: dict[str, dict[str, Any]] = {}
+    for item in results:
+        result_id = str(item.get("case_id", ""))
+        if result_id in result_by_id:
+            diagnostics.append(diagnostic("EV004", result_id or "<missing>", "测试结果 case_id 重复"))
+        result_by_id[result_id] = item
     case_reports: list[dict[str, Any]] = []
+    seen_case_ids: set[str] = set()
 
-    for case in cases:
+    for case in flattened_cases:
         case_id = str(case.get("case_id", ""))
         failures: list[str] = []
         if not case_id:
             diagnostics.append(diagnostic("EV001", "<missing>", "测试用例缺少 case_id"))
             continue
+        if case_id in seen_case_ids:
+            diagnostics.append(diagnostic("EV003", case_id, "测试用例 case_id 重复"))
+            case_reports.append({"case_id": case_id, "status": "fail", "failures": ["duplicate_case_id"]})
+            continue
+        seen_case_ids.add(case_id)
         result = result_by_id.get(case_id)
         if result is None:
             diagnostics.append(diagnostic("EV002", case_id, "缺少测试结果"))
             case_reports.append({"case_id": case_id, "status": "fail", "failures": ["missing_result"]})
             continue
 
-        answer = str(result.get("answer", ""))
         route = str(result.get("route", ""))
-        expected_route = case.get("expected_route")
-        if expected_route is not None and route != str(expected_route):
-            diagnostics.append(diagnostic("EV010", case_id, f"路由不符：期望 {expected_route!r}，实际 {route!r}"))
+        check = evaluate_assertions(case, result, route)
+        if check["route_mismatch"]:
+            diagnostics.append(diagnostic("EV010", case_id, f"路由不符：期望 {case.get('expected_route')!r}，实际 {route!r}"))
             failures.append("route")
-        for expected in case.get("expected_substrings", []):
-            if str(expected) not in answer:
-                diagnostics.append(diagnostic("EV011", case_id, f"答案缺少期望子串：{expected!r}"))
-                failures.append(f"missing:{expected}")
-        for forbidden in case.get("forbidden_substrings", []):
-            if str(forbidden) in answer:
-                diagnostics.append(diagnostic("EV012", case_id, f"答案包含禁止子串：{forbidden!r}"))
-                failures.append(f"forbidden:{forbidden}")
-        max_latency = case.get("max_latency_ms")
-        latency = result.get("latency_ms")
-        if max_latency is not None and (not isinstance(latency, (int, float)) or latency > max_latency):
-            diagnostics.append(diagnostic("EV013", case_id, f"延迟超限或缺失：{latency!r} > {max_latency}"))
+        for expected in check["missing"]:
+            diagnostics.append(diagnostic("EV011", case_id, f"答案缺少期望子串：{expected!r}"))
+            failures.append(f"missing:{expected}")
+        for forbidden in check["forbidden"]:
+            diagnostics.append(diagnostic("EV012", case_id, f"答案包含禁止子串：{forbidden!r}"))
+            failures.append(f"forbidden:{forbidden}")
+        if check["latency_missing"] or check["latency_exceeded"]:
+            diagnostics.append(diagnostic("EV013", case_id, f"延迟超限或缺失：{check['latency_ms']!r}，上限 {case.get('max_latency_ms')!r}"))
             failures.append("latency")
-        max_chars = case.get("max_answer_chars")
-        if max_chars is not None and len(answer) > int(max_chars):
-            diagnostics.append(diagnostic("EV014", case_id, f"答案过长：{len(answer)} > {max_chars}"))
+        if check["answer_too_long"]:
+            diagnostics.append(diagnostic("EV014", case_id, f"答案过长：{check['answer_chars']} > {case.get('max_answer_chars')}"))
             failures.append("length")
-        case_reports.append({"case_id": case_id, "status": "fail" if failures else "pass", "failures": failures})
+        if check["answer_too_short"]:
+            diagnostics.append(diagnostic("EV015", case_id, f"答案过短：{check['answer_chars']} < {case.get('min_answer_chars')}"))
+            failures.append("answer_too_short")
+        for group in check["missing_any_groups"]:
+            diagnostics.append(diagnostic("EV016", case_id, f"答案未命中任一允许表达：{group!r}"))
+            failures.append(f"missing_any:{group}")
+        for node in check["missing_nodes"]:
+            diagnostics.append(diagnostic("EV017", case_id, f"必需节点未执行：{node!r}"))
+            failures.append(f"missing_node:{node}")
+        for node in check["forbidden_nodes"]:
+            diagnostics.append(diagnostic("EV018", case_id, f"禁止节点被执行：{node!r}"))
+            failures.append(f"forbidden_node:{node}")
+        for text in check["runtime_failure_matches"]:
+            diagnostics.append(diagnostic("EV019", case_id, f"答案命中运行失败文本：{text!r}"))
+            failures.append(f"runtime_failure:{text}")
+        covered_runtime_flags = {
+            "answer_too_short", "required_node_missing", "forbidden_node_executed",
+            "runtime_failure_text", "latency_missing",
+        }
+        for flag in check["runtime_anomaly_flags"]:
+            if flag not in covered_runtime_flags:
+                diagnostics.append(diagnostic("EV021", case_id, f"检测到运行异常：{flag}"))
+                failures.append(f"runtime:{flag}")
+        case_reports.append({
+            "case_id": case_id,
+            "status": "fail" if failures else "pass",
+            "failures": failures,
+            "assertion_failed": check["assertion_failed"],
+            "runtime_anomaly": check["runtime_anomaly"],
+            "latency_exceeded": check["latency_exceeded"],
+            "text_match_mode": check["text_match_mode"],
+        })
 
-    defined_ids = {str(case.get("case_id")) for case in cases}
+    defined_ids = {str(case.get("case_id")) for case in flattened_cases}
     for extra_id in sorted(set(result_by_id) - defined_ids):
         diagnostics.append({"code": "EV020", "severity": "warning", "case_id": extra_id, "message": "结果中存在未定义用例"})
 
     status_counts = Counter(item["status"] for item in case_reports)
     return {
-        "schema_version": "1.0",
-        "summary": {"cases": len(cases), "results": len(results), "status_counts": dict(status_counts)},
+        "schema_version": "2.0",
+        "summary": {
+            "cases": len(flattened_cases),
+            "results": len(results),
+            "status_counts": dict(status_counts),
+            "assertion_failures": sum(bool(item.get("assertion_failed")) for item in case_reports),
+            "runtime_anomalies": sum(bool(item.get("runtime_anomaly")) for item in case_reports),
+            "latency_exceeded": sum(bool(item.get("latency_exceeded")) for item in case_reports),
+        },
         "cases": case_reports,
         "diagnostics": diagnostics,
     }
