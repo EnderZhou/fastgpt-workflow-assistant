@@ -1,0 +1,64 @@
+name: Bug report
+description: 报告可复现的 Skill、脚本或工作流生成问题
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: 提交前请移除凭据、内部名称、私有地址和真实业务数据。
+  - type: input
+    id: skill-version
+    attributes:
+      label: Skill 版本
+      placeholder: 例如 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: fastgpt-version
+    attributes:
+      label: FastGPT 版本与部署方式
+      placeholder: 例如 4.x，自托管
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 问题阶段
+      options:
+        - Skill 触发或执行
+        - JSON 生成
+        - 离线校验
+        - 平台导入或保存
+        - 回读或重导出
+        - 运行回归
+        - 知识库审计
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 最小复现步骤
+      description: 请使用脱敏或虚构数据。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果与错误信息
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 信息安全确认
+      options:
+        - label: 我已移除凭据、Cookie、内部名称、私有地址和真实业务数据。
+          required: true
+

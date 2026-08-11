@@ -1,0 +1,35 @@
+name: Feature request
+description: 提议一个通用能力或工程流程改进
+title: "[Feature] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 描述用户场景和当前限制，不要只描述实现方案。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 已考虑的替代方案
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 兼容性或验证证据
+      description: 如涉及模板或节点，请提供 FastGPT 版本和脱敏证据。
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: 通用性确认
+      options:
+        - label: 该需求具有跨业务场景的复用价值，而不是单一公司或项目的专用规则。
+          required: true
+

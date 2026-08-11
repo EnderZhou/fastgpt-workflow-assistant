@@ -1,0 +1,23 @@
+{
+  "logical_blueprints": {
+    "file": "../workflow-blueprints/mode-blueprints.json",
+    "importable": false,
+    "purpose": "Select a workflow mode and required gates before generating target-version JSON"
+  },
+  "templates": [
+    {
+      "id": "fastgpt-v481-minimal",
+      "file": "fastgpt-v481-minimal.json",
+      "platform": "FastGPT-compatible",
+      "application_mode": "workflow",
+      "schema_hint": "system/workflow nodes v481",
+      "node_types": ["userGuide", "workflowStart", "answerNode"],
+      "source_evidence": "minimal interoperability template assembled from public FastGPT workflow concepts; import verification required",
+      "verification": {
+        "offline_structure": "pass",
+        "target_platform_import": "pending"
+      },
+      "use_when": "Create a new workflow scaffold without requiring a user export"
+    }
+  ]
+}

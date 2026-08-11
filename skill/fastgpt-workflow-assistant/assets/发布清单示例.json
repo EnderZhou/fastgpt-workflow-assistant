@@ -1,0 +1,21 @@
+{
+  "skill": "fastgpt-workflow-assistant",
+  "skill_version": "1.1.0",
+  "target_platform": "FastGPT-or-compatible",
+  "target_version": "REQUIRED",
+  "workflow_version": "0.0.0",
+  "knowledge_version": "YYYY-MM-DD",
+  "source_type": "template|existing-workflow|browser-export",
+  "template_id": "optional",
+  "source_sha256": "REQUIRED",
+  "changed_nodes": [],
+  "changed_documents": [],
+  "required_rebindings": ["models", "knowledge_bases", "credentials", "application_ids"],
+  "validation": {
+    "offline": "pending",
+    "platform_import": "pending",
+    "runtime_regression": "pending",
+    "roundtrip": "pending"
+  },
+  "rollback_workflow": "REQUIRED"
+}

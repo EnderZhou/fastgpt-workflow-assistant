@@ -1,0 +1,48 @@
+name: Compatibility report
+description: 报告特定 FastGPT 版本的导入或运行兼容情况
+title: "[Compatibility] "
+labels: ["compatibility", "needs-triage"]
+body:
+  - type: input
+    id: fastgpt-version
+    attributes:
+      label: FastGPT 版本
+    validations:
+      required: true
+  - type: input
+    id: deployment
+    attributes:
+      label: 部署方式
+      placeholder: 官方云服务、自托管、其他兼容实例
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: 验证结果
+      options:
+        - 导入并运行通过
+        - 导入通过但运行失败
+        - 导入失败
+        - 仅完成离线验证
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: 节点、错误与重绑信息
+      description: 只提供脱敏信息。
+    validations:
+      required: true
+  - type: textarea
+    id: changes
+    attributes:
+      label: 为兼容该版本所做的修改
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 信息安全确认
+      options:
+        - label: 我已移除密钥、内部系统信息和真实业务数据。
+          required: true
+

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: 如果这个项目对你有帮助，请引用本仓库并保留作者署名。
+title: FastGPT工作流生成助手
+type: software
+authors:
+  - family-names: Zhou
+    given-names: Peng
+version: 1.1.0
+date-released: 2026-08-11
+license: Apache-2.0

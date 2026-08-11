@@ -1,0 +1,12 @@
+{
+  "skill_name": "fastgpt-workflow-assistant",
+  "display_name": "FastGPT工作流生成助手",
+  "version": "1.1.0",
+  "release_date": "2026-08-11",
+  "version_scheme": "semver",
+  "update_channel": "github-releases-explicit",
+  "package_pattern": "fastgpt-workflow-assistant-v{version}.zip",
+  "machine_name_stable": true,
+  "automatic_update": false,
+  "rollback_supported": true
+}
