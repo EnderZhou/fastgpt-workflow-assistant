@@ -22,6 +22,9 @@ SECRET_PATTERNS = [
     re.compile(r"\bfastgpt-[A-Za-z0-9_-]{12,}", re.I),
     re.compile(r"\b(?:api[_-]?key|token|secret)\s*[:=]\s*[\"']?[A-Za-z0-9._~-]{16,}", re.I),
 ]
+VARIABLE_REF_PATTERN = re.compile(r"\{\{([^{}]*?)\}\}")
+VERSION_LABEL_PATTERN = re.compile(r"(?i)(?<![A-Za-z0-9])V?(\d+\.\d+(?:\.\d+)?)(?![A-Za-z0-9])")
+CODE_NODE_TYPES = {"code", "coderun", "sandbox"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,6 +34,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expect-preserve-layout", action="store_true", help="要求原节点坐标不变")
     parser.add_argument("--expect-preserve-models", action="store_true", help="要求模型配置不变")
     parser.add_argument("--node", help="用于 JavaScript 语法检查的 Node.js 可执行文件")
+    parser.add_argument("--expected-app-version", help="检查全局变量显示标签中的应用版本，例如V3.5.14")
     parser.add_argument("--json", action="store_true", dest="json_output", help="输出机器可读 JSON")
     parser.add_argument("--strict", action="store_true", help="把 warning 也视为失败")
     return parser.parse_args()
@@ -106,6 +110,41 @@ def scan_strings(value: Any, path: str = "$"):
             yield from scan_strings(child, f"{path}[{index}]")
 
 
+def normalize_app_version(value: str) -> str:
+    match = VERSION_LABEL_PATTERN.search(str(value or "").strip())
+    if not match:
+        raise ValueError(f"无法解析应用版本：{value!r}，示例为V3.5.14")
+    return match.group(1)
+
+
+def validate_global_variable_versions(data: dict[str, Any], expected: str | None) -> list[dict[str, Any]]:
+    if not expected:
+        return []
+    expected_normalized = normalize_app_version(expected)
+    variables = data.get("chatConfig", {}).get("variables", [])
+    if isinstance(variables, dict):
+        variables = [variables]
+    if not isinstance(variables, list):
+        return [issue("FG084", "warning", "chatConfig.variables不是对象数组，无法检查全局变量版本标签", path="$.chatConfig.variables")]
+    diagnostics: list[dict[str, Any]] = []
+    for index, variable in enumerate(variables):
+        if not isinstance(variable, dict):
+            continue
+        label = str(variable.get("label", ""))
+        versions = {match.group(1) for match in VERSION_LABEL_PATTERN.finditer(label)}
+        stale = sorted(version for version in versions if version != expected_normalized)
+        if stale:
+            key = str(variable.get("key", ""))
+            diagnostics.append(issue(
+                "FG084",
+                "warning",
+                f"全局变量显示标签仍包含旧版本{stale}，期望V{expected_normalized}；机器键{key!r}应保持稳定",
+                path=f"$.chatConfig.variables[{index}].label",
+                suggested_fix=f"只更新显示标签中的版本为V{expected_normalized}，不要在没有迁移方案时重命名变量key",
+            ))
+    return diagnostics
+
+
 def compile_code_nodes(nodes: list[dict[str, Any]], node_executable: str | None) -> tuple[int, list[dict[str, Any]]]:
     diagnostics: list[dict[str, Any]] = []
     checked = 0
@@ -153,6 +192,87 @@ def compile_code_nodes(nodes: list[dict[str, Any]], node_executable: str | None)
         else:
             diagnostics.append(issue("FG073", "warning", f"暂不支持检查代码类型 {code_type!r}", path=item_path, node_id=current_id, suggested_fix="在目标平台手工验证该代码节点"))
     return checked, diagnostics
+
+
+def get_code_outputs(node: dict[str, Any]) -> list[dict[str, Any]]:
+    """从代码节点获取输出声明，优先读取顶层 outputs 字段，回退到 inputs。"""
+    raw_outputs = node.get("outputs")
+    if not isinstance(raw_outputs, list):
+        raw_outputs = input_value(node, "outputs") or []
+    if not isinstance(raw_outputs, list):
+        return []
+    return [item for item in raw_outputs if isinstance(item, dict)]
+
+
+def collect_code_outputs(nodes: list[dict[str, Any]]) -> dict[str, set[str]]:
+    """收集所有代码节点声明的输出变量名映射，用于校验跨节点变量引用。"""
+    outputs_map: dict[str, set[str]] = {}
+    for node in nodes:
+        if str(node.get("flowNodeType", "")).lower() not in CODE_NODE_TYPES:
+            continue
+        current_id = node_id(node)
+        names = {str(item.get("key", "")) for item in get_code_outputs(node)}
+        outputs_map[current_id] = {name for name in names if name}
+    return outputs_map
+
+
+def parse_variable_refs(text: str) -> list[tuple[str, str, bool]]:
+    """解析文本中的 {{...}} 变量引用，返回 (nodeId, varName, hasDollarSyntax) 列表。"""
+    refs: list[tuple[str, str, bool]] = []
+    for match in VARIABLE_REF_PATTERN.finditer(text):
+        body = match.group(1).strip()
+        if "." not in body:
+            continue
+        has_dollar = body.startswith("$") and body.endswith("$") and len(body) > 2
+        inner = body[1:-1].strip() if has_dollar else body
+        if "." not in inner:
+            continue
+        parts = inner.split(".", 1)
+        refs.append((parts[0].strip(), parts[1].strip(), has_dollar))
+    return refs
+
+
+def validate_variable_references(
+    nodes: list[dict[str, Any]],
+    id_set: set[str],
+    code_outputs: dict[str, set[str]],
+) -> list[dict[str, Any]]:
+    """扫描所有节点的字符串输入，校验跨节点变量引用语法与目标存在性。"""
+    diagnostics: list[dict[str, Any]] = []
+    for node_index, node in enumerate(nodes):
+        current_id = node_id(node)
+        for input_index, item in enumerate(node.get("inputs", [])):
+            value = item.get("value") if isinstance(item, dict) else None
+            if not isinstance(value, str):
+                continue
+            diagnostics.extend(
+                _check_single_ref(value, node_index, input_index, current_id, id_set, code_outputs)
+            )
+    return diagnostics
+
+
+def _check_single_ref(
+    value: str,
+    node_index: int,
+    input_index: int,
+    current_id: str,
+    id_set: set[str],
+    code_outputs: dict[str, set[str]],
+) -> list[dict[str, Any]]:
+    """对单个输入值中的所有变量引用生成诊断条目。"""
+    items: list[dict[str, Any]] = []
+    item_path = f"$.nodes[{node_index}].inputs[{input_index}].value"
+    for ref_node, ref_var, has_dollar in parse_variable_refs(value):
+        if not ref_node or not ref_var:
+            items.append(issue("FG083", "error", f"变量引用缺少 nodeId 或 varName：{ref_node!r}.{ref_var!r}", path=item_path, node_id=current_id, suggested_fix="补全引用格式为 {{$nodeId.varName$}}"))
+            continue
+        if not has_dollar:
+            items.append(issue("FG080", "warning", f"跨节点引用建议使用 {{{{$...$}}}} 语法：{{{{{ref_node}.{ref_var}}}}}", path=item_path, node_id=current_id, suggested_fix=f"改为 {{{{${ref_node}.{ref_var}$}}}}"))
+        elif ref_node not in id_set:
+            items.append(issue("FG081", "error", f"变量引用未知节点：{ref_node!r}", path=item_path, node_id=current_id, suggested_fix="修正节点 ID 或恢复上游节点"))
+        elif ref_node in code_outputs and ref_var not in code_outputs[ref_node]:
+            items.append(issue("FG082", "error", f"变量引用未声明的输出：{ref_node}.{ref_var}", path=item_path, node_id=current_id, suggested_fix=f"在节点 {ref_node} 的 outputs 中声明 {ref_var}"))
+    return items
 
 
 def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
@@ -257,6 +377,10 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
     checked_code, code_diagnostics = compile_code_nodes(nodes, args.node)
     diagnostics.extend(code_diagnostics)
 
+    code_outputs = collect_code_outputs(nodes)
+    diagnostics.extend(validate_variable_references(nodes, id_set, code_outputs))
+    diagnostics.extend(validate_global_variable_versions(data, args.expected_app_version))
+
     baseline_summary: dict[str, Any] | None = None
     if args.baseline:
         baseline = load_json(args.baseline)
@@ -290,6 +414,7 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
         diagnostics.append(issue("FG103", "error", "布局/模型保留检查需要 --baseline", suggested_fix="提供上一版导出 JSON"))
 
     counts = Counter(item["severity"] for item in diagnostics)
+    var_ref_codes = {"FG080", "FG081", "FG082", "FG083"}
     summary = {
         "nodes": len(nodes),
         "edges": len(edges),
@@ -297,6 +422,9 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
         "business_nodes": len(business_nodes),
         "reachable_business_nodes": len(business_nodes) - len(unreachable),
         "code_nodes_syntax_checked": checked_code,
+        "code_nodes_with_outputs": len(code_outputs),
+        "variable_ref_issues": sum(1 for item in diagnostics if item["code"] in var_ref_codes),
+        "global_variable_version_issues": sum(1 for item in diagnostics if item["code"] == "FG084"),
         "models": collect_models(nodes),
         "baseline": baseline_summary,
         "diagnostic_counts": dict(counts),

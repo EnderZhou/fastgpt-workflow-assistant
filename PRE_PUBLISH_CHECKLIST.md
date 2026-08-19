@@ -24,7 +24,7 @@
 - [ ] 已启用 Issues，确认 Issue 表单可以正常创建。
 - [ ] 已设置默认分支保护，要求 CI 通过后再合并。
 - [ ] 已确认仓库许可证显示为 Apache-2.0。
-- [ ] 已将 `dist/fastgpt-workflow-assistant-v1.2.0.zip`、`dist/fastgpt-workflow-assistant-latest.zip` 和 `dist/latest.json` 上传到 `v1.2.0` Release。
+- [ ] 已将 `dist/fastgpt-workflow-assistant-v1.3.0.zip`、`dist/fastgpt-workflow-assistant-latest.zip` 和 `dist/latest.json` 上传到 `v1.3.0` Release。
 - [ ] 已验证 `/releases/latest/download/latest.json` 和 `/releases/latest/download/fastgpt-workflow-assistant-latest.zip` 两个固定链接。
 
 ## 发布验证

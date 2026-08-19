@@ -16,7 +16,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from regression_assertions import contains_text, evaluate_assertions, get_match_mode
+from regression_assertions import contains_text, evaluate_assertions, get_match_mode, validate_case_spec
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,9 +24,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("cases", type=Path, help="测试用例JSON对象数组")
     parser.add_argument("results", type=Path, help="结果JSON输出路径")
     parser.add_argument("--url", required=True, help="chat/completions接口URL")
-    app_id_group = parser.add_mutually_exclusive_group(required=True)
+    app_id_group = parser.add_mutually_exclusive_group(required=False)
     app_id_group.add_argument("--app-id")
     app_id_group.add_argument("--app-id-env", help="从指定环境变量读取appId，避免写入脚本或命令历史")
+    parser.add_argument("--share-only", action="store_true", help="分享链接模式：不要求且不发送appId")
     share_id_group = parser.add_mutually_exclusive_group(required=True)
     share_id_group.add_argument("--share-id")
     share_id_group.add_argument("--share-id-env", help="从指定环境变量读取shareId，避免写入脚本或命令历史")
@@ -54,7 +55,9 @@ def load_cases(path: Path) -> list[dict[str, Any]]:
         for turn in item["turns"]:
             if not isinstance(turn, dict):
                 raise ValueError(f"{item['case_id']}: turns每项必须是对象")
-            get_match_mode({**item, **turn})
+            merged = {**item, **turn}
+            get_match_mode(merged)
+            validate_case_spec(merged, str(turn.get("result_id") or item["case_id"]))
     return value
 
 
@@ -156,7 +159,6 @@ def request_turn(args: argparse.Namespace, chat_id: str, uid: str,
                  messages: list[dict[str, str]]) -> dict[str, Any]:
     payload = {
         "chatId": chat_id,
-        "appId": args.app_id,
         "shareId": args.share_id,
         "outLinkUid": uid,
         "messages": messages,
@@ -165,6 +167,8 @@ def request_turn(args: argparse.Namespace, chat_id: str, uid: str,
         "stream": True,
         "retainDatasetCite": True,
     }
+    if args.app_id:
+        payload["appId"] = args.app_id
     headers = {"Content-Type": "application/json; charset=utf-8"}
     if args.authorization_env:
         token = os.environ.get(args.authorization_env, "").strip()
@@ -346,7 +350,12 @@ def build_shareable_summary(summary: dict[str, Any], results: list[dict[str, Any
 
 def main() -> int:
     args = parse_args()
-    args.app_id = resolve_identifier(args.app_id, args.app_id_env, "appId")
+    if args.share_only and (args.app_id or args.app_id_env):
+        raise ValueError("--share-only不能与--app-id/--app-id-env同时使用")
+    if args.share_only:
+        args.app_id = ""
+    else:
+        args.app_id = resolve_identifier(args.app_id, args.app_id_env, "appId")
     args.share_id = resolve_identifier(args.share_id, args.share_id_env, "shareId")
     if args.gap_seconds < 0:
         raise ValueError("gap-seconds不能为负数")

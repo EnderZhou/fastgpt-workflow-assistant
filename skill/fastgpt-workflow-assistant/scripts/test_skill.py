@@ -27,11 +27,19 @@ def run(*arguments: str, expected: int = 0) -> subprocess.CompletedProcess[str]:
 def main() -> int:
     version_manifest = json.loads((ROOT.parent / "assets" / "skill-version.json").read_text(encoding="utf-8"))
     assert version_manifest["skill_name"] == "fastgpt-workflow-assistant"
-    assert version_manifest["version"] == "1.2.0"
+    assert version_manifest["version"] == "1.3.0"
+    assert version_manifest["distribution_profile"] == "slim-production"
+
+    skill_text = (ROOT.parent / "SKILL.md").read_text(encoding="utf-8")
+    description = skill_text.split("---", 2)[1]
+    assert "FastGPT" in description
+    assert all(platform in description for platform in ("n8n", "Dify", "Coze"))
+    assert "不用于" in description and "未指定 FastGPT" in description
+    assert "## 适用边界" in skill_text
 
     current_version = run(str(ROOT / "check_skill_version.py"), "--json")
     current_version_result = json.loads(current_version.stdout)
-    assert current_version_result["current_version"] == "1.2.0"
+    assert current_version_result["current_version"] == "1.3.0"
     assert current_version_result["status"] == "current_only"
 
     valid = run(str(ROOT / "validate_fastgpt_workflow.py"), str(FIXTURES / "valid-workflow.json"), "--json")
@@ -177,23 +185,173 @@ def main() -> int:
         generated_categories = {item["category"] for item in generated_case_items}
         assert {"safety", "idempotency", "event-batch", "agent-control"}.issubset(generated_categories)
 
-        package_path = Path(directory) / "fastgpt-workflow-assistant-v1.2.0.zip"
-        run(str(ROOT / "package_skill.py"), str(ROOT.parent), str(package_path), "--enforce-versioned-name")
+        assertions_path = ROOT / "regression_assertions.py"
+        assertions_spec = importlib.util.spec_from_file_location("regression_assertions_selftest", assertions_path)
+        assert assertions_spec and assertions_spec.loader
+        assertions_module = importlib.util.module_from_spec(assertions_spec)
+        assertions_spec.loader.exec_module(assertions_module)
+        assert assertions_module.normalize_text("## **格式化标题**") == "格式化标题"
+        fallback_mismatch = assertions_module.evaluate_assertions(
+            {
+                "case_id": "fallback-mismatch",
+                "expected_behavior": "fallback",
+                "expected_fallback_substrings": ["暂时无法"],
+            },
+            {"answer": "正常结果", "nodes": []}, "",
+        )
+        assert "behavior_mismatch_expected_fallback" in fallback_mismatch["runtime_anomaly_flags"]
+        error_mismatch = assertions_module.evaluate_assertions(
+            {"expected_behavior": "error"}, {"answer": "", "nodes": [], "http_status": 200}, "",
+        )
+        assert "behavior_mismatch_expected_error" in error_mismatch["runtime_anomaly_flags"]
+        expected_fallback = assertions_module.evaluate_assertions(
+            {
+                "case_id": "expected-fallback",
+                "expected_behavior": "fallback",
+                "expected_fallback_substrings": ["暂时无法"],
+            },
+            {"answer": "当前暂时无法处理", "nodes": []}, "",
+        )
+        assert not expected_fallback["runtime_anomaly"]
+        runtime_fallback = assertions_module.evaluate_assertions(
+            {
+                "case_id": "fallback-runtime",
+                "expected_behavior": "fallback",
+                "expected_fallback_substrings": ["暂时无法"],
+                "runtime_failure_substrings": ["平台调用失败"],
+            },
+            {"answer": "暂时无法处理：平台调用失败", "nodes": []}, "",
+        )
+        assert runtime_fallback["runtime_anomaly"]
+        assert "runtime_failure_text" in runtime_fallback["runtime_anomaly_flags"]
+
+        for invalid_spec in (
+            {"case_id": "empty-positive", "expected_substrings": [""]},
+            {"case_id": "empty-route", "route_markers": {"process": []}},
+            {
+                "case_id": "contradiction",
+                "expected_substrings": ["示例标识"],
+                "runtime_failure_substrings": ["示例标识"],
+            },
+        ):
+            try:
+                assertions_module.validate_case_spec(invalid_spec)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"应拒绝无效测试用例: {invalid_spec}")
+
+        identifier_limit = assertions_module.evaluate_assertions(
+            {"case_id": "identifier-limit", "max_distinct_ipv4": 1, "max_distinct_mac": 1},
+            {
+                "answer": "10.1.1.1 10.1.1.2 AA:BB:CC:DD:EE:01 AA:BB:CC:DD:EE:02",
+                "nodes": [],
+            },
+            "",
+        )
+        assert identifier_limit["assertion_failed"]
+        assert identifier_limit["ipv4_count_exceeded"]
+        assert identifier_limit["mac_count_exceeded"]
+
+        validator_path = ROOT / "validate_fastgpt_workflow.py"
+        validator_spec = importlib.util.spec_from_file_location("validator_selftest", validator_path)
+        assert validator_spec and validator_spec.loader
+        validator_module = importlib.util.module_from_spec(validator_spec)
+        validator_spec.loader.exec_module(validator_module)
+        ref_context = (0, 0, "consumer", {"source", "consumer"}, {"source": {"answer"}})
+        assert not validator_module._check_single_ref("{{$source.answer$}}", *ref_context)
+        assert {item["code"] for item in validator_module._check_single_ref("{{source.answer}}", *ref_context)} == {"FG080"}
+        assert {item["code"] for item in validator_module._check_single_ref("{{$missing.answer$}}", *ref_context)} == {"FG081"}
+        assert {item["code"] for item in validator_module._check_single_ref("{{$source.other$}}", *ref_context)} == {"FG082"}
+        assert {item["code"] for item in validator_module._check_single_ref("{{$.$}}", *ref_context)} == {"FG083"}
+
+        stale_version_workflow = temporary_root / "stale-version-workflow.json"
+        stale_version_data = json.loads((FIXTURES / "valid-workflow.json").read_text(encoding="utf-8"))
+        stale_version_data["chatConfig"] = {
+            "variables": [{"key": "contextState", "label": "V3.5.13会话上下文状态"}]
+        }
+        stale_version_workflow.write_text(json.dumps(stale_version_data, ensure_ascii=False), encoding="utf-8")
+        stale_version_result = run(
+            str(ROOT / "validate_fastgpt_workflow.py"), str(stale_version_workflow),
+            "--expected-app-version", "V3.5.14", "--json", "--strict", expected=1,
+        )
+        assert "FG084" in {item["code"] for item in json.loads(stale_version_result.stdout)["diagnostics"]}
+        stale_version_data["chatConfig"]["variables"][0]["label"] = "V3.5.14会话上下文状态"
+        stale_version_workflow.write_text(json.dumps(stale_version_data, ensure_ascii=False), encoding="utf-8")
+        current_version_result = run(
+            str(ROOT / "validate_fastgpt_workflow.py"), str(stale_version_workflow),
+            "--expected-app-version", "V3.5.14", "--json", "--strict",
+        )
+        assert not [
+            item for item in json.loads(current_version_result.stdout)["diagnostics"]
+            if item["code"] == "FG084"
+        ]
+        assert stale_version_data["chatConfig"]["variables"][0]["key"] == "contextState"
+
+        random_cases_path = temporary_root / "random-cases.json"
+        run(
+            str(ROOT / "generate_random_test_cases.py"),
+            str(ROOT.parent / "assets" / "功能画像示例.json"),
+            str(random_cases_path), "--count", "12", "--seed", "42",
+        )
+        random_cases = json.loads(random_cases_path.read_text(encoding="utf-8"))
+        assert len(random_cases) == 12
+        assert all(isinstance(item.get("turns"), list) and len(item["turns"]) == 1 for item in random_cases)
+        assert not any(
+            "{" in item["turns"][0]["question"] or "}" in item["turns"][0]["question"]
+            for item in random_cases
+        )
+        assert not any("input" in item for item in random_cases)
+        assert all(
+            not turn.get("runtime_failure_substrings")
+            for item in random_cases for turn in item["turns"]
+            if turn.get("expected_behavior", "normal") == "normal"
+        )
+
+        changed_workflow = temporary_root / "changed-workflow.json"
+        changed_data = json.loads((FIXTURES / "valid-workflow.json").read_text(encoding="utf-8"))
+        changed_data["nodes"][0]["name"] = "已变更节点名"
+        changed_workflow.write_text(json.dumps(changed_data, ensure_ascii=False), encoding="utf-8")
+        version_diff = run(
+            str(ROOT / "compare_workflow_versions.py"),
+            str(FIXTURES / "valid-workflow.json"), str(changed_workflow), "--json",
+        )
+        version_diff_report = json.loads(version_diff.stdout)
+        assert version_diff_report["changed_node_count"] == 1
+        assert version_diff_report["changed_nodes"]
+
+        answer_guard = (ROOT.parent / "assets" / "code-snippets" / "answer-guard-template.js").read_text(encoding="utf-8")
+        assert "supportContact" in answer_guard
+
+        package_path = Path(directory) / "fastgpt-workflow-assistant-v1.3.0.zip"
+        run(
+            str(ROOT / "package_skill.py"), str(ROOT.parent), str(package_path),
+            "--profile", "slim-production", "--enforce-versioned-name",
+        )
         with zipfile.ZipFile(package_path, "r") as archive:
             names = archive.namelist()
             assert "SKILL.md" in names
             assert "assets/skill-version.json" in names
+            assert "scripts/smoke_test_skill.py" in names
+            assert "scripts/generate_random_test_cases.py" in names
+            assert "scripts/compare_workflow_versions.py" in names
+            assert "assets/workflow-templates/retry-pattern.json" in names
+            assert "assets/功能画像示例.json" in names
+            assert "scripts/package_skill.py" not in names
+            assert "scripts/test_skill.py" not in names
+            assert "references/同类技能工程参考.md" not in names
+            assert not any(name.startswith("scripts/tests/") for name in names)
             assert not any(name.startswith(ROOT.parent.name + "/") for name in names)
 
         package_version = run(str(ROOT / "check_skill_version.py"), "--package", str(package_path), "--json")
         package_version_result = json.loads(package_version.stdout)
         assert package_version_result["status"] == "up_to_date"
-        assert package_version_result["package"]["version"] == "1.2.0"
+        assert package_version_result["package"]["version"] == "1.3.0"
 
         same_manifest_path = temporary_root / "latest-same.json"
         same_manifest_path.write_text(json.dumps({
             "skill_name": "fastgpt-workflow-assistant",
-            "latest_version": "1.2.0",
+            "latest_version": "1.3.0",
         }, ensure_ascii=False), encoding="utf-8")
         same_version = run(str(ROOT / "check_skill_version.py"), "--manifest", str(same_manifest_path), "--json")
         assert json.loads(same_version.stdout)["status"] == "up_to_date"
@@ -201,8 +359,8 @@ def main() -> int:
         newer_manifest_path = temporary_root / "latest-newer.json"
         newer_manifest_path.write_text(json.dumps({
             "skill_name": "fastgpt-workflow-assistant",
-            "latest_version": "2.7.0",
-            "download_url": "https://example.invalid/skill-v2.7.0.zip",
+            "latest_version": "1.4.0",
+            "download_url": "https://example.invalid/skill-v1.4.0.zip",
         }, ensure_ascii=False), encoding="utf-8")
         newer_version = run(str(ROOT / "check_skill_version.py"), "--manifest", str(newer_manifest_path), "--json")
         assert json.loads(newer_version.stdout)["status"] == "update_available"
@@ -226,6 +384,40 @@ def main() -> int:
         assert runner_spec and runner_spec.loader
         runner = importlib.util.module_from_spec(runner_spec)
         runner_spec.loader.exec_module(runner)
+
+        captured_request: dict[str, object] = {}
+        original_urlopen = runner.urllib.request.urlopen
+
+        class FakeResponse:
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, traceback):
+                return False
+
+            def __iter__(self):
+                return iter([b"data: [DONE]\n"])
+
+        def fake_urlopen(request, **kwargs):
+            captured_request["payload"] = json.loads(request.data.decode("utf-8"))
+            return FakeResponse()
+
+        runner.urllib.request.urlopen = fake_urlopen
+        try:
+            runner.request_turn(
+                type("Args", (), {
+                    "app_id": "", "share_id": "share", "authorization_env": None,
+                    "url": "https://example.invalid", "timeout_seconds": 1,
+                })(),
+                "chat", "uid", [{"role": "user", "content": "测试"}],
+            )
+        finally:
+            runner.urllib.request.urlopen = original_urlopen
+        assert "appId" not in captured_request["payload"]
+        assert captured_request["payload"]["shareId"] == "share"
+
         inherited_specs: list[dict[str, object]] = []
         original_request_turn = runner.request_turn
         runner.request_turn = lambda args, chat_id, uid, messages: {
@@ -339,7 +531,7 @@ def main() -> int:
         assert "SECRET-" not in shareable_text
         assert "C:/restricted/raw.json" not in shareable_text
 
-    print("FastGPT工作流生成助手 v1.2.0 全部离线自测试通过：版本一致性与更新检查、多模式蓝图、模板生成、工作流验证、可选知识库审计、模式用例生成、Round-trip 比较、统一断言与 Unicode 匹配、接口异常分类、脱敏汇总、Skill 根目录打包。")
+    print("FastGPT工作流生成助手 v1.3.0 全部离线自测试通过：版本一致性、触发边界、变量引用校验、版本标签门禁、行为分类、用例规范检查、标识符隔离、随机用例、版本差异、模板生成、工作流验证、知识库审计、统一断言、接口异常分类、脱敏汇总和精简生产包。")
     return 0
 
 

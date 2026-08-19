@@ -11,6 +11,14 @@ from pathlib import Path
 
 
 EXCLUDED_PARTS = {"__pycache__", ".git", ".DS_Store"}
+SLIM_EXCLUDED_PREFIXES = {
+    ("scripts", "tests"),
+}
+SLIM_EXCLUDED_FILES = {
+    ("references", "同类技能工程参考.md"),
+    ("scripts", "package_skill.py"),
+    ("scripts", "test_skill.py"),
+}
 SEMVER_PATTERN = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 
 
@@ -20,14 +28,28 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("output_zip", type=Path)
     parser.add_argument("--force", action="store_true", help="覆盖已存在的目标ZIP")
     parser.add_argument("--enforce-versioned-name", action="store_true", help="要求ZIP文件名包含清单中的vX.Y.Z")
+    parser.add_argument(
+        "--profile",
+        choices=("full", "slim-production"),
+        default="full",
+        help="full 保留研发资料；slim-production 排除打包工具、工程参考、全量自测试与夹具",
+    )
     return parser.parse_args()
 
 
-def should_include(path: Path, root: Path) -> bool:
+def should_include(path: Path, root: Path, profile: str = "full") -> bool:
     relative = path.relative_to(root)
     if any(part in EXCLUDED_PARTS for part in relative.parts):
         return False
-    return path.suffix.lower() != ".pyc"
+    if path.suffix.lower() == ".pyc":
+        return False
+    if profile == "slim-production":
+        parts = relative.parts
+        if parts in SLIM_EXCLUDED_FILES:
+            return False
+        if any(parts[: len(prefix)] == prefix for prefix in SLIM_EXCLUDED_PREFIXES):
+            return False
+    return True
 
 
 def load_version(root: Path) -> str:
@@ -51,7 +73,8 @@ def load_version(root: Path) -> str:
 
 
 def package(skill_directory: Path, output_zip: Path, force: bool = False,
-            enforce_versioned_name: bool = False) -> tuple[int, int, str]:
+            enforce_versioned_name: bool = False,
+            profile: str = "full") -> tuple[int, int, str]:
     root = skill_directory.resolve()
     output = output_zip.resolve()
     if not root.is_dir():
@@ -69,7 +92,10 @@ def package(skill_directory: Path, output_zip: Path, force: bool = False,
     if output.exists():
         output.unlink()
 
-    files = sorted(path for path in root.rglob("*") if path.is_file() and should_include(path, root))
+    files = sorted(
+        path for path in root.rglob("*")
+        if path.is_file() and should_include(path, root, profile)
+    )
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in files:
             archive.write(path, path.relative_to(root).as_posix())
@@ -80,6 +106,16 @@ def package(skill_directory: Path, output_zip: Path, force: bool = False,
             raise RuntimeError("package validation failed: SKILL.md is not at ZIP root")
         if "assets/skill-version.json" not in names:
             raise RuntimeError("package validation failed: version manifest missing")
+        if "scripts/smoke_test_skill.py" not in names:
+            raise RuntimeError("package validation failed: smoke test missing")
+        if profile == "slim-production":
+            forbidden = {
+                "references/同类技能工程参考.md",
+                "scripts/package_skill.py",
+                "scripts/test_skill.py",
+            }
+            if forbidden.intersection(names) or any(name.startswith("scripts/tests/") for name in names):
+                raise RuntimeError("package validation failed: development tests leaked into slim package")
         if any(name.startswith(root.name + "/") for name in names):
             raise RuntimeError("package validation failed: unexpected outer skill directory")
         archive.testzip()
@@ -94,6 +130,7 @@ def main() -> int:
             args.output_zip,
             force=args.force,
             enforce_versioned_name=args.enforce_versioned_name,
+            profile=args.profile,
         )
     except Exception as exc:
         print(f"ERROR: {type(exc).__name__}: {exc}")
@@ -102,6 +139,7 @@ def main() -> int:
     print(f"FILES: {count}")
     print(f"SIZE: {size}")
     print(f"VERSION: {version}")
+    print(f"PROFILE: {args.profile}")
     print("ROOT_ENTRY: SKILL.md")
     return 0
 

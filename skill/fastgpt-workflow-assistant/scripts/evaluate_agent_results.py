@@ -104,6 +104,12 @@ def evaluate(cases: list[dict[str, Any]], results: list[dict[str, Any]]) -> dict
         if check["answer_too_short"]:
             diagnostics.append(diagnostic("EV015", case_id, f"答案过短：{check['answer_chars']} < {case.get('min_answer_chars')}"))
             failures.append("answer_too_short")
+        if check["ipv4_count_exceeded"]:
+            diagnostics.append(diagnostic("EV022", case_id, f"答案包含不同IPv4数量过多：{check['distinct_ipv4_count']} > {case.get('max_distinct_ipv4')}"))
+            failures.append("distinct_ipv4_count")
+        if check["mac_count_exceeded"]:
+            diagnostics.append(diagnostic("EV023", case_id, f"答案包含不同MAC数量过多：{check['distinct_mac_count']} > {case.get('max_distinct_mac')}"))
+            failures.append("distinct_mac_count")
         for group in check["missing_any_groups"]:
             diagnostics.append(diagnostic("EV016", case_id, f"答案未命中任一允许表达：{group!r}"))
             failures.append(f"missing_any:{group}")
@@ -130,6 +136,7 @@ def evaluate(cases: list[dict[str, Any]], results: list[dict[str, Any]]) -> dict
             "failures": failures,
             "assertion_failed": check["assertion_failed"],
             "runtime_anomaly": check["runtime_anomaly"],
+            "expected_behavior": check.get("expected_behavior", "normal"),
             "latency_exceeded": check["latency_exceeded"],
             "text_match_mode": check["text_match_mode"],
         })
