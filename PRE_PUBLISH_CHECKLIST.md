@@ -24,7 +24,7 @@
 - [ ] 已启用 Issues，确认 Issue 表单可以正常创建。
 - [ ] 已设置默认分支保护，要求 CI 通过后再合并。
 - [ ] 已确认仓库许可证显示为 Apache-2.0。
-- [ ] 已将 `dist/fastgpt-workflow-assistant-v1.3.0.zip`、`dist/fastgpt-workflow-assistant-latest.zip` 和 `dist/latest.json` 上传到 `v1.3.0` Release。
+- [ ] 已将 `dist/fastgpt-workflow-assistant-v2.7.0.zip`、`dist/fastgpt-workflow-assistant-latest.zip` 和 `dist/latest.json` 上传到 `v2.7.0` Release。
 - [ ] 已验证 `/releases/latest/download/latest.json` 和 `/releases/latest/download/fastgpt-workflow-assistant-latest.zip` 两个固定链接。
 
 ## 发布验证
@@ -32,5 +32,5 @@
 - [ ] `python skill/fastgpt-workflow-assistant/scripts/test_skill.py` 通过。
 - [ ] 发布 ZIP 根目录直接包含 `SKILL.md`。
 - [ ] 已从发布 ZIP 做过一次全新导入测试。
-- [ ] README、Skill 版本号、`latest.json`、Release Tag 和版本化 ZIP 文件名一致。
+- [ ] README、Skill 版本号、`latest.json`、Release Tag 和版本化 ZIP 文件名一致（v2.7.0）。
 - [ ] `latest.json` 中的 SHA-256 与两个发布 ZIP 的实际哈希一致。

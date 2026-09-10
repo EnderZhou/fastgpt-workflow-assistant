@@ -1,0 +1,33 @@
+{
+  "skill_name": "fastgpt-workflow-assistant",
+  "version": "2.7.0",
+  "generated_for": [
+    "Trae",
+    "WorkBuddy",
+    "Agent Skills compatible clients"
+  ],
+  "validation_status": "candidate packages; target-client import pending",
+  "packages": {
+    "trae": {
+      "file": "fastgpt-workflow-assistant-v2.7.0_Trae_import-ready.zip",
+      "sha256": "A6DEC942E96F5A461AA767E408C14A2F54AA01F11141ECE6901725D2F1008B4C",
+      "size": 94783,
+      "files": 39,
+      "skill_entry": "SKILL.md"
+    },
+    "workbuddy": {
+      "file": "fastgpt-workflow-assistant-v2.7.0_WorkBuddy_import-ready.zip",
+      "sha256": "5FF4382FB5C8C1D1431DC29D184945A9FBEC7656159544821E055C5C3E6673A1",
+      "size": 97061,
+      "files": 39,
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md"
+    },
+    "agent_skills": {
+      "file": "fastgpt-workflow-assistant-v2.7.0_AgentSkills_folder.zip",
+      "sha256": "ACAA164DF6AE395C2AA1B0277DBD5AC61541D2E8955BC0B2DBA18EC5F960207B",
+      "size": 96889,
+      "files": 39,
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md"
+    }
+  }
+}

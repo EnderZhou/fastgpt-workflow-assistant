@@ -27,7 +27,7 @@ def run(*arguments: str, expected: int = 0) -> subprocess.CompletedProcess[str]:
 def main() -> int:
     version_manifest = json.loads((ROOT.parent / "assets" / "skill-version.json").read_text(encoding="utf-8"))
     assert version_manifest["skill_name"] == "fastgpt-workflow-assistant"
-    assert version_manifest["version"] == "1.3.0"
+    assert version_manifest["version"] == "2.7.0"
     assert version_manifest["distribution_profile"] == "slim-production"
 
     skill_text = (ROOT.parent / "SKILL.md").read_text(encoding="utf-8")
@@ -39,7 +39,7 @@ def main() -> int:
 
     current_version = run(str(ROOT / "check_skill_version.py"), "--json")
     current_version_result = json.loads(current_version.stdout)
-    assert current_version_result["current_version"] == "1.3.0"
+    assert current_version_result["current_version"] == "2.7.0"
     assert current_version_result["status"] == "current_only"
 
     valid = run(str(ROOT / "validate_fastgpt_workflow.py"), str(FIXTURES / "valid-workflow.json"), "--json")
@@ -65,7 +65,7 @@ def main() -> int:
         {
             "case_id": "normalized-pass",
             "expected_route": "process",
-            "expected_substrings": ["Example-PD"],
+            "expected_substrings": ["Asset-PD"],
             "expected_any_groups": [["不一定在线", "不等于当前在线"]],
             "forbidden_substrings": ["CITE"],
             "required_nodes": ["流程答复"],
@@ -77,7 +77,7 @@ def main() -> int:
         },
         {
             "case_id": "strict-hyphen-fail",
-            "expected_substrings": ["Example-PD"],
+            "expected_substrings": ["Asset-PD"],
             "text_match_mode": "strict",
         },
         {
@@ -101,13 +101,13 @@ def main() -> int:
         {
             "case_id": "normalized-pass",
             "route": "process",
-            "answer": "Example‑PD 已注册不等于当前在线。",
+            "answer": "Asset-PD 已注册不等于当前在线。",
             "nodes": ["流程答复"],
             "latency_ms": 20,
         },
         {
             "case_id": "strict-hyphen-fail",
-            "answer": "Example‑PD",
+            "answer": "Asset‑PD",
             "latency_ms": 10,
         },
         {
@@ -230,8 +230,8 @@ def main() -> int:
             {"case_id": "empty-route", "route_markers": {"process": []}},
             {
                 "case_id": "contradiction",
-                "expected_substrings": ["示例标识"],
-                "runtime_failure_substrings": ["示例标识"],
+                "expected_substrings": ["周鹏"],
+                "runtime_failure_substrings": ["周鹏"],
             },
         ):
             try:
@@ -321,9 +321,40 @@ def main() -> int:
         assert version_diff_report["changed_nodes"]
 
         answer_guard = (ROOT.parent / "assets" / "code-snippets" / "answer-guard-template.js").read_text(encoding="utf-8")
-        assert "supportContact" in answer_guard
+        assert "内部编号" not in answer_guard and "supportContact" in answer_guard
 
-        package_path = Path(directory) / "fastgpt-workflow-assistant-v1.3.0.zip"
+        file_input_source = temporary_root / "file-input-source.json"
+        file_input_output = temporary_root / "file-input-output.json"
+        file_input_data = json.loads((FIXTURES / "valid-workflow.json").read_text(encoding="utf-8"))
+        file_input_data["nodes"].extend([
+            {
+                "nodeId": "gate-1", "name": "文件判断", "flowNodeType": "ifElseNode",
+                "position": {"x": 100, "y": 100}, "inputs": [{"key": "ifElseList", "value": []}], "outputs": [],
+            },
+            {
+                "nodeId": "ai-1", "name": "文件解析", "flowNodeType": "chatNode",
+                "position": {"x": 300, "y": 100}, "inputs": [], "outputs": [],
+            },
+        ])
+        file_input_source.write_text(json.dumps(file_input_data, ensure_ascii=False), encoding="utf-8")
+        configured = run(
+            str(ROOT / "configure_file_input.py"), str(file_input_source), str(file_input_output),
+            "--start-node-id", "start-1", "--gate-node-id", "gate-1", "--ai-node-id", "ai-1",
+            "--max-files", "8", "--enable-images", "--pdf-enhanced", "--json",
+        )
+        configured_report = json.loads(configured.stdout)
+        assert configured_report["status"] == "candidate_generated"
+        configured_data = json.loads(file_input_output.read_text(encoding="utf-8"))
+        configured_start = next(node for node in configured_data["nodes"] if node["nodeId"] == "start-1")
+        configured_gate = next(node for node in configured_data["nodes"] if node["nodeId"] == "gate-1")
+        configured_ai = next(node for node in configured_data["nodes"] if node["nodeId"] == "ai-1")
+        assert any(item.get("key") == "userFiles" for item in configured_start["outputs"])
+        assert configured_data["chatConfig"]["fileSelectConfig"]["maxFiles"] == 8
+        assert configured_data["chatConfig"]["fileSelectConfig"]["canSelectImg"] is True
+        assert next(item for item in configured_gate["inputs"] if item["key"] == "ifElseList")["value"][0]["list"][0]["variable"] == ["start-1", "userFiles"]
+        assert next(item for item in configured_ai["inputs"] if item["key"] == "fileUrlList")["value"] == [["start-1", "userFiles"]]
+
+        package_path = Path(directory) / "fastgpt-workflow-assistant-v2.7.0.zip"
         run(
             str(ROOT / "package_skill.py"), str(ROOT.parent), str(package_path),
             "--profile", "slim-production", "--enforce-versioned-name",
@@ -335,9 +366,11 @@ def main() -> int:
             assert "scripts/smoke_test_skill.py" in names
             assert "scripts/generate_random_test_cases.py" in names
             assert "scripts/compare_workflow_versions.py" in names
+            assert "scripts/configure_file_input.py" in names
             assert "assets/workflow-templates/retry-pattern.json" in names
             assert "assets/功能画像示例.json" in names
             assert "scripts/package_skill.py" not in names
+            assert "scripts/package_desktop_agents.py" not in names
             assert "scripts/test_skill.py" not in names
             assert "references/同类技能工程参考.md" not in names
             assert not any(name.startswith("scripts/tests/") for name in names)
@@ -346,12 +379,36 @@ def main() -> int:
         package_version = run(str(ROOT / "check_skill_version.py"), "--package", str(package_path), "--json")
         package_version_result = json.loads(package_version.stdout)
         assert package_version_result["status"] == "up_to_date"
-        assert package_version_result["package"]["version"] == "1.3.0"
+        assert package_version_result["package"]["version"] == "2.7.0"
+
+        desktop_output = temporary_root / "desktop-packages"
+        desktop_packages = run(
+            str(ROOT / "package_desktop_agents.py"), str(ROOT.parent), str(desktop_output),
+        )
+        desktop_report = json.loads(desktop_packages.stdout)
+        assert desktop_report["status"] == "ok"
+        assert desktop_report["version"] == "2.7.0"
+        trae_path = desktop_output / desktop_report["packages"]["trae"]["file"]
+        workbuddy_path = desktop_output / desktop_report["packages"]["workbuddy"]["file"]
+        agent_skills_path = desktop_output / desktop_report["packages"]["agent_skills"]["file"]
+        with zipfile.ZipFile(trae_path, "r") as archive:
+            assert "SKILL.md" in archive.namelist()
+            assert "scripts/configure_file_input.py" in archive.namelist()
+        with zipfile.ZipFile(workbuddy_path, "r") as archive:
+            entry = "fastgpt-workflow-assistant/SKILL.md"
+            assert entry in archive.namelist()
+            workbuddy_skill = archive.read(entry).decode("utf-8")
+            assert "description_zh:" in workbuddy_skill
+            assert "description_en:" in workbuddy_skill
+            assert "version: 2.7.0" in workbuddy_skill
+            assert "author:" in workbuddy_skill
+        with zipfile.ZipFile(agent_skills_path, "r") as archive:
+            assert "fastgpt-workflow-assistant/SKILL.md" in archive.namelist()
 
         same_manifest_path = temporary_root / "latest-same.json"
         same_manifest_path.write_text(json.dumps({
             "skill_name": "fastgpt-workflow-assistant",
-            "latest_version": "1.3.0",
+            "latest_version": "2.7.0",
         }, ensure_ascii=False), encoding="utf-8")
         same_version = run(str(ROOT / "check_skill_version.py"), "--manifest", str(same_manifest_path), "--json")
         assert json.loads(same_version.stdout)["status"] == "up_to_date"
@@ -359,8 +416,8 @@ def main() -> int:
         newer_manifest_path = temporary_root / "latest-newer.json"
         newer_manifest_path.write_text(json.dumps({
             "skill_name": "fastgpt-workflow-assistant",
-            "latest_version": "1.4.0",
-            "download_url": "https://example.invalid/skill-v1.4.0.zip",
+            "latest_version": "2.8.0",
+            "download_url": "https://example.invalid/skill-v2.8.0.zip",
         }, ensure_ascii=False), encoding="utf-8")
         newer_version = run(str(ROOT / "check_skill_version.py"), "--manifest", str(newer_manifest_path), "--json")
         assert json.loads(newer_version.stdout)["status"] == "update_available"
@@ -483,14 +540,14 @@ def main() -> int:
         assert "runtime_failure_text" in runtime_result["runtime_anomaly_flags"]
 
         strict_result = runner.evaluate_turn(
-            {"expected_substrings": ["Example-PD"], "text_match_mode": "strict"},
-            {"answer": "Example‑PD", "nodes": [], "errors": [], "duration_seconds": 0.1},
+            {"expected_substrings": ["Asset-PD"], "text_match_mode": "strict"},
+            {"answer": "Asset‑PD", "nodes": [], "errors": [], "duration_seconds": 0.1},
             "process",
         )
         assert strict_result["assertion_failed"]
         normalized_result = runner.evaluate_turn(
-            {"expected_substrings": ["Example-PD"]},
-            {"answer": "Example‑PD", "nodes": [], "errors": [], "duration_seconds": 0.1},
+            {"expected_substrings": ["Asset-PD"]},
+            {"answer": "Asset-PD", "nodes": [], "errors": [], "duration_seconds": 0.1},
             "process",
         )
         assert not normalized_result["assertion_failed"]
@@ -531,7 +588,7 @@ def main() -> int:
         assert "SECRET-" not in shareable_text
         assert "C:/restricted/raw.json" not in shareable_text
 
-    print("FastGPT工作流生成助手 v1.3.0 全部离线自测试通过：版本一致性、触发边界、变量引用校验、版本标签门禁、行为分类、用例规范检查、标识符隔离、随机用例、版本差异、模板生成、工作流验证、知识库审计、统一断言、接口异常分类、脱敏汇总和精简生产包。")
+    print("FastGPT工作流生成助手 v2.7.0 全部离线自测试通过：版本一致性、触发边界、文件输入补丁、变量引用校验、版本标签门禁、行为分类、用例规范检查、标识符隔离、随机用例、版本差异、模板生成、工作流验证、知识库审计、统一断言、接口异常分类、脱敏汇总、精简生产包和桌面Agent专用包。")
     return 0
 
 

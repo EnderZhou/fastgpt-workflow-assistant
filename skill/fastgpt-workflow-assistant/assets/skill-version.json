@@ -1,15 +1,22 @@
 {
   "skill_name": "fastgpt-workflow-assistant",
   "display_name": "FastGPT工作流生成助手",
-  "version": "1.3.0",
-  "release_date": "2026-08-19",
+  "version": "2.7.0",
+  "release_date": "2026-09-10",
   "version_scheme": "semver",
   "update_channel": "github-releases-explicit",
   "package_pattern": "fastgpt-workflow-assistant-v{version}.zip",
+  "desktop_package_patterns": {
+    "trae": "fastgpt-workflow-assistant-v{version}_Trae_import-ready.zip",
+    "workbuddy": "fastgpt-workflow-assistant-v{version}_WorkBuddy_import-ready.zip",
+    "agent_skills": "fastgpt-workflow-assistant-v{version}_AgentSkills_folder.zip"
+  },
   "machine_name_stable": true,
   "automatic_update": false,
   "rollback_supported": true,
   "distribution_profile": "slim-production",
+  "desktop_targets": ["Trae", "WorkBuddy", "Agent Skills compatible clients"],
+  "desktop_package_script": "scripts/package_desktop_agents.py",
   "import_package_smoke_test": "scripts/smoke_test_skill.py",
   "full_source_selftest": "scripts/test_skill.py"
 }

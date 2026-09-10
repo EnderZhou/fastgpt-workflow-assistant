@@ -53,7 +53,7 @@ def version_tuple(value: str) -> tuple[int, int, int]:
 
 def load_release_manifest(source: str) -> dict[str, Any]:
     if source.lower().startswith("https://"):
-        request = urllib.request.Request(source, headers={"User-Agent": "FastGPT-Workflow-Skill-Version-Checker/1.0"})
+        request = urllib.request.Request(source, headers={"User-Agent": "FastGPT-Skill-Version-Checker/1.0"})
         with urllib.request.urlopen(request, timeout=10) as response:
             raw = response.read(MAX_MANIFEST_BYTES + 1)
         if len(raw) > MAX_MANIFEST_BYTES:

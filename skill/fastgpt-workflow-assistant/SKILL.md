@@ -1,17 +1,17 @@
 ---
 name: fastgpt-workflow-assistant
-description: 当前版本 1.3.0（2026-08-19）。仅在用户明确涉及 FastGPT、FastGPT 兼容自托管实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。
+description: 当前版本 2.7.0（2026-09-10）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；新增文件上传、多文件解析完整性及跨桌面 Agent 分发支持。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
 ---
 
-# FastGPT工作流生成助手 v1.3.0
+# FastGPT工作流生成助手 v2.7.0
 
-把 FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。平台实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
+把 FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。FastGPT 的实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
 
 ## 适用边界
 
 仅在满足以下任一条件时使用本 Skill：
 
-- 用户明确提到 FastGPT 或 FastGPT 兼容自托管实例；
+- 用户明确提到 FastGPT 或 FastGPT 兼容实例；
 - 用户提供可识别的 FastGPT 工作流导出 JSON，并要求检查、修改、导入或测试；
 - 用户明确要求把其他平台的流程迁移到 FastGPT、从 FastGPT 迁出，或与其集成；
 - 用户显式调用 `$fastgpt-workflow-assistant`。
@@ -20,11 +20,13 @@ description: 当前版本 1.3.0（2026-08-19）。仅在用户明确涉及 FastG
 
 ## 版本与维护
 
-- 当前版本：`1.3.0`，发布日期：`2026-08-19`。
+- 当前版本：`2.7.0`，发布日期：`2026-09-10`。
+- 创建人：周鹏，通过 GitHub Issues 和 Discussions 反馈优化建议和使用问题。
 - 保持机器名和目录名 `fastgpt-workflow-assistant` 稳定，只更新展示版本和内容。
 - 查询、更新或回滚时读取 [版本与更新](references/版本与更新.md)，以 `assets/skill-version.json` 为版本事实来源。更新必须由用户显式发起。
-- v1.3.0 同步脱敏后的工程能力基线，收紧自动触发边界，并新增变量引用/版本标签校验、用例矛盾预检、随机用例、版本差异和精简生产包。
-- v1.2.0 统一接口执行与离线评测断言，增强 Unicode 匹配、运行异常分类和脱敏测试摘要。
+- v2.7.0 新增文件输入与多文件审核工程指南、可复用文件输入配置脚本，以及 Trae、WorkBuddy 和通用 Agent Skills 分发包生成能力；把目标实例回导结构、上传完整性门禁和“准确性必须有权威基准”固化为正式规则。
+- v2.6.5 收紧自动触发边界：仅在明确涉及 FastGPT、其导出 JSON 或相关迁移集成时调用，排除其他平台的独立工作流任务。
+- v2.6.4 修复测试契约与分享接口兼容性，新增应用版本标签校验（FG084）、用例矛盾预检和单目标标识符数量断言。
 
 ## 核心规则
 
@@ -34,6 +36,7 @@ description: 当前版本 1.3.0（2026-08-19）。仅在用户明确涉及 FastG
 4. 不把密钥、Token、私有地址、生产数据写入 Skill、样例、日志或发布说明。凭据只进入平台凭据系统或受保护变量。
 5. 测试写入、通知、删除、发布等副作用前，说明影响并取得授权；设计确认、幂等、回读、补偿和审计。
 6. 发布时明确区分：候选 JSON、离线验证通过、平台导入通过、运行回归通过。
+7. 文件上传不是单一开关。保存并回导后必须同时核对 `chatConfig.fileSelectConfig`、开始节点的 `userFiles` 输出和所有下游引用；未回读前不得宣称文件链路已配置完成。
 
 ## 选择任务模式
 
@@ -62,7 +65,9 @@ description: 当前版本 1.3.0（2026-08-19）。仅在用户明确涉及 FastG
 
 优先用确定性节点处理规则和精确标识符；用工具读取或改变外部状态；用检索提供受控依据；只让模型处理必要的理解与表达。外部访问使用 HTTP 节点或插件，不假定代码沙箱可联网。每条分支定义无命中、非法输入、超时、部分成功和人工升级路径。
 
-v1.3.0 新增资产：`assets/workflow-templates/retry-pattern.json`（非导入式守卫/兜底设计参考，强调 `{{$nodeId.var$}}` 语法）、`assets/code-snippets/ip-mac-validation.js`、`assets/code-snippets/answer-guard-template.js` 和 `assets/功能画像示例.json`。使用前按目标工作流替换支持渠道、阈值和业务断言，不直接复制示例业务值。
+涉及文件上传、文档解析、图纸图片、多文件对比或“内容是否准确”时，必须读取 [文件输入与多文件审核](references/文件输入与多文件审核.md)。可使用 `scripts/configure_file_input.py` 在现有工作流上补齐上传配置、`userFiles` 输出以及指定判断/AI节点的引用，然后按目标实例回导结果复核。
+
+v2.6.3 新增资产：`assets/workflow-templates/retry-pattern.json`（非导入式守卫/兜底设计参考，强调 `{{$nodeId.var$}}` 语法）、`assets/code-snippets/ip-mac-validation.js`、`assets/code-snippets/answer-guard-template.js` 和 `assets/功能画像示例.json`。使用前按目标工作流替换支持渠道、阈值和业务断言，不直接复制示例业务值。
 
 ### 3. VALIDATE
 
@@ -122,3 +127,5 @@ python scripts/package_skill.py <skill-directory> <output.zip> --profile slim-pr
 ```
 
 ZIP 根目录必须直接包含 `SKILL.md`，不得增加外层技能目录。发布前运行完整源码中的 `scripts/test_skill.py`；导入后运行包内 `scripts/smoke_test_skill.py`。精简包不携带打包脚本、工程调研资料和开发期测试夹具。
+
+分发到 Trae、WorkBuddy 或其他桌面 Agent 时读取 [桌面 Agent 分发](references/桌面Agent分发.md)，并使用 `scripts/package_desktop_agents.py` 生成目标客户端专用包。不同客户端的 ZIP 根结构与 frontmatter 要求不同，不要只改文件名冒充兼容。

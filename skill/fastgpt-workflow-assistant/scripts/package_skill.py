@@ -16,6 +16,7 @@ SLIM_EXCLUDED_PREFIXES = {
 }
 SLIM_EXCLUDED_FILES = {
     ("references", "同类技能工程参考.md"),
+    ("scripts", "package_desktop_agents.py"),
     ("scripts", "package_skill.py"),
     ("scripts", "test_skill.py"),
 }
@@ -111,6 +112,7 @@ def package(skill_directory: Path, output_zip: Path, force: bool = False,
         if profile == "slim-production":
             forbidden = {
                 "references/同类技能工程参考.md",
+                "scripts/package_desktop_agents.py",
                 "scripts/package_skill.py",
                 "scripts/test_skill.py",
             }
