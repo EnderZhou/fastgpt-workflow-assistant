@@ -174,6 +174,59 @@ def main() -> int:
         generated_report = run(str(ROOT / "validate_fastgpt_workflow.py"), str(generated_workflow), "--json")
         assert not [item for item in json.loads(generated_report.stdout)["diagnostics"] if item["severity"] == "error"]
 
+        # A stable ID change used to pass both model-preservation checks silently.
+        before_model = temporary_root / "model-before.json"
+        after_model = temporary_root / "model-after.json"
+        for key in ("model", "modelId", "rerankModel", "rerankModelId",
+                    "datasetSearchExtensionModel", "datasetSearchExtensionModelId"):
+            original = json.loads(generated_workflow.read_text(encoding="utf-8"))
+            original["nodes"][-1]["inputs"].append({"key": key, "value": "example-model-a"})
+            before_model.write_text(json.dumps(original), encoding="utf-8")
+            unchanged = run(str(ROOT / "validate_fastgpt_workflow.py"), str(before_model),
+                            "--baseline", str(before_model), "--expect-preserve-models", "--json")
+            assert not json.loads(unchanged.stdout)["summary"]["baseline"]["model_changes"]
+            original["nodes"][-1]["inputs"][-1]["value"] = "example-model-b"
+            after_model.write_text(json.dumps(original), encoding="utf-8")
+            drift = run(str(ROOT / "validate_fastgpt_workflow.py"), str(after_model),
+                        "--baseline", str(before_model), "--expect-preserve-models", "--json", expected=1)
+            assert "FG102" in {item["code"] for item in json.loads(drift.stdout)["diagnostics"]}
+            drift = run(str(ROOT / "compare_fastgpt_roundtrip.py"), str(before_model),
+                        str(after_model), "--json", expected=1)
+            assert "RT005" in {item["code"] for item in json.loads(drift.stdout)["diagnostics"]}
+            run(str(ROOT / "compare_fastgpt_roundtrip.py"), str(before_model),
+                str(after_model), "--allow-model-change")
+
+        from model_bindings import model_bindings
+        assert model_bindings({"inputs": [{"key": "modelId", "value": ""}]}) != model_bindings({"inputs": []})
+        assert model_bindings({"inputs": [{"key": "model", "value": "same"}]}) != model_bindings({"inputs": [{"key": "modelId", "value": "same"}]})
+        assert model_bindings({"inputs": [{"key": "modelId", "value": ["VARIABLE_NODE_ID", "choice"]}]})["modelId"] == [["VARIABLE_NODE_ID", "choice"]]
+        assert model_bindings({"inputs": [{"key": "modelId", "value": "a"}, {"key": "modelId", "value": "b"}]})["modelId"] == ["a", "b"]
+
+        # Accepting a name-to-ID value change does not waive the schema migration gate.
+        original = json.loads(generated_workflow.read_text(encoding="utf-8"))
+        original["nodes"][-1]["inputs"].append({"key": "model", "value": "same"})
+        before_model.write_text(json.dumps(original), encoding="utf-8")
+        original["nodes"][-1]["inputs"][-1]["key"] = "modelId"
+        after_model.write_text(json.dumps(original), encoding="utf-8")
+        migration = run(str(ROOT / "compare_fastgpt_roundtrip.py"), str(before_model),
+                        str(after_model), "--allow-model-change", "--json", expected=1)
+        assert "RT004" in {item["code"] for item in json.loads(migration.stdout)["diagnostics"]}
+
+        before_model.write_text(json.dumps(original), encoding="utf-8")
+        for removed in (False, True):
+            cleared = json.loads(before_model.read_text(encoding="utf-8"))
+            if removed:
+                cleared["nodes"][-1]["inputs"].pop()
+            else:
+                cleared["nodes"][-1]["inputs"][-1]["value"] = ""
+            after_model.write_text(json.dumps(cleared), encoding="utf-8")
+            cleared_report = run(str(ROOT / "validate_fastgpt_workflow.py"), str(after_model),
+                                 "--baseline", str(before_model), "--expect-preserve-models", "--json", expected=1)
+            assert "FG102" in {item["code"] for item in json.loads(cleared_report.stdout)["diagnostics"]}
+            cleared_report = run(str(ROOT / "compare_fastgpt_roundtrip.py"), str(before_model),
+                                 str(after_model), "--json", expected=1)
+            assert "RT005" in {item["code"] for item in json.loads(cleared_report.stdout)["diagnostics"]}
+
         generated_cases = temporary_root / "generated-cases.json"
         run(
             str(ROOT / "generate_test_cases.py"),

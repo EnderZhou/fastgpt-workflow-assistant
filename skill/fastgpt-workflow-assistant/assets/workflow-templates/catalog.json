@@ -10,14 +10,19 @@
       "file": "fastgpt-v481-minimal.json",
       "platform": "FastGPT-compatible",
       "application_mode": "workflow",
-      "schema_hint": "system/workflow nodes v481",
-      "node_types": ["userGuide", "workflowStart", "answerNode"],
+      "schema_hint": "legacy node format marker 481; not a server-version compatibility declaration",
+      "node_types": [
+        "userGuide",
+        "workflowStart",
+        "answerNode"
+      ],
       "source_evidence": "minimal interoperability template assembled from public FastGPT workflow concepts; import verification required",
       "verification": {
         "offline_structure": "pass",
         "target_platform_import": "pending"
       },
-      "use_when": "Create a new workflow scaffold without requiring a user export"
+      "use_when": "Create a new workflow scaffold without requiring a user export",
+      "verified_server_versions": []
     },
     {
       "id": "retry-guard-reply",
@@ -25,7 +30,11 @@
       "platform": "FastGPT-compatible",
       "application_mode": "pattern-reference",
       "schema_hint": "non-importable conceptual pattern for answer guard and fallback reply",
-      "node_types": ["placeholder", "code", "answerNode"],
+      "node_types": [
+        "placeholder",
+        "code",
+        "answerNode"
+      ],
       "source_evidence": "pattern extracted from V3.5.14 retry mechanism fix; cross-node variable references use {{$nodeId.var$}} syntax",
       "verification": {
         "offline_structure": "pass",

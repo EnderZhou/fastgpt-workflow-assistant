@@ -60,6 +60,8 @@ def main() -> int:
         workflow = Path(directory) / "minimal.json"
         run(str(ROOT / "scripts" / "create_workflow_from_template.py"), str(workflow))
         run(str(ROOT / "scripts" / "validate_fastgpt_workflow.py"), str(workflow), "--strict")
+        # Also exercise imports of shared compatibility helpers in extracted packages.
+        run(str(ROOT / "scripts" / "compare_fastgpt_roundtrip.py"), str(workflow), str(workflow), "--strict")
 
     print(f"OK: {EXPECTED_NAME} v{EXPECTED_VERSION} 精简生产包冒烟检查通过")
     return 0
