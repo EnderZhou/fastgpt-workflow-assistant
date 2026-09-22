@@ -1,6 +1,6 @@
 # FastGPT工作流生成助手
 
-当前公开版本：`v2.7.0`（2026-09-10）。
+当前公开版本：`v2.8.0`（2026-09-22）。
 
 一个面向 FastGPT 及兼容自托管实例的开源 Codex Skill，用于把 AI 应用、Agent 和自动化工作流当作可版本化、可测试、可回滚的软件工程项目来开发。
 
@@ -22,7 +22,7 @@
 - 校验跨节点变量引用和应用版本标签，拒绝空期望、矛盾断言及单目标查询中的无关标识符扩散。
 - 根据脱敏功能画像生成可复现随机用例，并输出不含业务正文的工作流版本差异报告。
 - 支持文件/图片输入、多文件解析完整性检查，以及文件内容在判断和 AI 节点之间的显式传递配置。
-- 可生成 Trae、WorkBuddy 和通用 Agent Skills 客户端的导入包。
+- 可生成 Trae、WorkBuddy、Hermes 和通用 Agent Skills 客户端的导入包。
 - 将原始测试证据与可分享脱敏摘要分级保存，避免在协作材料中暴露业务正文或本地路径。
 - 在用户授权且浏览器可用时，辅助完成非生产实例的导入、配置、运行和回读验证。
 - 内置语义化版本、版本一致性检查、SHA-256 校验、显式更新与回滚方案。
@@ -36,7 +36,7 @@
 - 版本清单：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json`
 - 最新安装包：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip`
 
-每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v2.7.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
+每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v2.8.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
 
 ### 从源码安装
 
@@ -55,6 +55,16 @@ skill/fastgpt-workflow-assistant/
 ```text
 检查当前技能版本；如果有更新，只报告可信下载地址和校验信息，不要自动覆盖安装。
 ```
+
+### Hermes Agent
+
+本仓库的 Hermes 适配见 [Hermes 运行指南](skill/fastgpt-workflow-assistant/references/Hermes适配.md)。支持 Python 标准库离线工具和已授权分享接口回归；不要求桌面浏览器、uv 或 Docker 权限。分发脚本会额外生成带单层技能目录的 `*_Hermes_folder.zip`，安装到当前 Hermes profile 实际使用的 skills 根目录或分类目录。
+
+v2.8.0 正式提供 Hermes 分发包与多版本适配指南。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
+
+## 多版本 FastGPT
+
+新增 [多版本适配指南](skill/fastgpt-workflow-assistant/references/多版本适配.md)，按官方资料区分旧版能力边界、4.16 与 4.17 的模型/工具差异。模型保留与回读检查同时覆盖旧名称字段和新稳定 ID 字段。文档覆盖、离线检查和目标平台运行验证分别记录，不把旧模板标记当作服务器版本，也不承诺未测试版本已可直接导入。
 
 ## 版本检查与更新
 
@@ -93,14 +103,14 @@ python skill/fastgpt-workflow-assistant/scripts/check_skill_version.py `
 python skill/fastgpt-workflow-assistant/scripts/test_skill.py
 python skill/fastgpt-workflow-assistant/scripts/package_skill.py `
   skill/fastgpt-workflow-assistant `
-  dist/fastgpt-workflow-assistant-v2.7.0.zip `
+  dist/fastgpt-workflow-assistant-v2.8.0.zip `
   --profile slim-production --enforce-versioned-name
 ```
 
 完整仓库压缩包：
 
 ```powershell
-python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v2.7.0.zip --force
+python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v2.8.0.zip --force
 ```
 
 ## 参与完善

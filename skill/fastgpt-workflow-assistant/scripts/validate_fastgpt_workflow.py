@@ -13,6 +13,8 @@ from collections import Counter, defaultdict, deque
 from pathlib import Path
 from typing import Any
 
+from model_bindings import collect_model_bindings
+
 
 SYSTEM_TYPES = {"userGuide", "systemConfig"}
 SPECIAL_REFERENCE_IDS = {"VARIABLE_NODE_ID", "SYSTEM_VARIABLE_NODE_ID"}
@@ -93,7 +95,9 @@ def input_value(node: dict[str, Any], key: str) -> Any:
 def collect_models(nodes: list[dict[str, Any]]) -> dict[str, str]:
     result: dict[str, str] = {}
     for node in nodes:
-        value = input_value(node, "model")
+        value = input_value(node, "modelId")
+        if value is None:
+            value = input_value(node, "model")
         if isinstance(value, str) and value:
             result[node_id(node)] = value
     return result
@@ -389,8 +393,8 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
         base_by_id = {node_id(node): node for node in base_nodes}
         current_by_id = {node_id(node): node for node in nodes}
         moved = sorted(current_id for current_id in set(base_by_id) & id_set if base_by_id[current_id].get("position") != current_by_id[current_id].get("position"))
-        base_models = collect_models(base_nodes)
-        current_models = collect_models(nodes)
+        base_models = collect_model_bindings(base_nodes)
+        current_models = collect_model_bindings(nodes)
         model_changes = {
             current_id: {"before": base_models.get(current_id), "after": current_models.get(current_id)}
             for current_id in sorted(set(base_models) | set(current_models))
@@ -426,6 +430,7 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
         "variable_ref_issues": sum(1 for item in diagnostics if item["code"] in var_ref_codes),
         "global_variable_version_issues": sum(1 for item in diagnostics if item["code"] == "FG084"),
         "models": collect_models(nodes),
+        "model_bindings": collect_model_bindings(nodes),
         "baseline": baseline_summary,
         "diagnostic_counts": dict(counts),
     }

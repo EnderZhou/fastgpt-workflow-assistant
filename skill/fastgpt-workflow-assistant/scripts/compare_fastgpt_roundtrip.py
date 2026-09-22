@@ -10,6 +10,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from model_bindings import model_bindings
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -74,8 +76,8 @@ def compare(before: dict[str, Any], after: dict[str, Any], args: argparse.Namesp
         right_keys = sorted(item.get("key") for item in right.get("inputs", []) if isinstance(item, dict) and item.get("key") is not None)
         if left_keys != right_keys:
             diagnostics.append(issue("RT004", "error", f"节点 {current_id} 输入键变化：{left_keys} -> {right_keys}", "核验版本迁移和变量引用，更新兼容性矩阵"))
-        if input_value(left, "model") != input_value(right, "model") and not args.allow_model_change:
-            diagnostics.append(issue("RT005", "error", f"节点 {current_id} 模型变化：{input_value(left, 'model')} -> {input_value(right, 'model')}", "恢复原模型或使用 --allow-model-change 明确接受"))
+        if model_bindings(left) != model_bindings(right) and not args.allow_model_change:
+            diagnostics.append(issue("RT005", "error", f"节点 {current_id} 模型绑定变化：{model_bindings(left)} -> {model_bindings(right)}", "核验旧名称与新 ID 的资源映射；恢复原绑定或用 --allow-model-change 接受值变化（不会忽略输入键迁移）"))
         if left.get("position") != right.get("position") and not args.allow_layout_change:
             diagnostics.append(issue("RT006", "warning", f"节点 {current_id} 坐标变化：{left.get('position')} -> {right.get('position')}", "恢复布局或使用 --allow-layout-change 明确接受"))
 

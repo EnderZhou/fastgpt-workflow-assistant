@@ -68,7 +68,11 @@ fastgpt-workflow-assistant/SKILL.md
 
 解压后应得到 `.agents/skills/fastgpt-workflow-assistant/SKILL.md`，不要产生双重目录。Trae 支持启用项目 `.agents/skills/`；若同名技能同时存在于 `.trae/skills/`，Trae 优先使用后者。
 
-## 5. 状态与哈希
+## 5. Hermes Agent
+
+`package_desktop_agents.py` 同时输出 `*_Hermes_folder.zip`。入口为 `fastgpt-workflow-assistant/SKILL.md`，使用标准 frontmatter，不注入 WorkBuddy 专属字段。安装目录、Linux 命令和无浏览器限制见 [Hermes 适配](Hermes适配.md)。生产包的生成测试会解压 Hermes 包并执行其冒烟测试；真实 Hermes 中的发现与执行仍须另行验证。
+
+## 6. 状态与哈希
 
 每个包记录：
 
