@@ -405,6 +405,22 @@ def main() -> int:
         with zipfile.ZipFile(agent_skills_path, "r") as archive:
             assert "fastgpt-workflow-assistant/SKILL.md" in archive.namelist()
 
+        hermes_info = desktop_report["packages"]["hermes"]
+        hermes_path = desktop_output / hermes_info["file"]
+        assert "Hermes Agent" in desktop_report["generated_for"]
+        with zipfile.ZipFile(hermes_path, "r") as archive:
+            names = archive.namelist()
+            prefix = "fastgpt-workflow-assistant/"
+            assert hermes_info["skill_entry"] == prefix + "SKILL.md"
+            assert prefix + "references/Hermes适配.md" in names
+            assert prefix + "scripts/run_share_api_regression.py" in names
+            assert prefix + "scripts/package_desktop_agents.py" not in names
+            assert all(name.startswith(prefix) and ".." not in Path(name).parts for name in names)
+            hermes_root = temporary_root / "hermes-install"
+            archive.extractall(hermes_root)
+        # Exercise the actual extracted package, not just its directory names.
+        run(str(hermes_root / "fastgpt-workflow-assistant/scripts/smoke_test_skill.py"))
+
         same_manifest_path = temporary_root / "latest-same.json"
         same_manifest_path.write_text(json.dumps({
             "skill_name": "fastgpt-workflow-assistant",

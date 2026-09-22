@@ -120,6 +120,8 @@ python scripts/compare_workflow_versions.py old.json new.json --json
 
 ## 分发本 Skill
 
+在 Hermes Agent、Linux 容器或无桌面环境执行时，先读取 [Hermes 适配](references/Hermes适配.md)：使用 `python3` 与实际安装路径，不依赖 PowerShell、Codex 专属工具或预设的浏览器。命令示例中的相对路径均相对于技能目录，工作流与测试结果应写到独立项目目录。
+
 面向客户端导入时，从完整源码生成精简生产包：
 
 ```powershell

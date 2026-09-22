@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""生成 Trae、WorkBuddy 和通用 Agent Skills 桌面客户端包。"""
+"""生成 Trae、WorkBuddy、Hermes 和通用 Agent Skills 客户端包。"""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ MACHINE_NAME = "fastgpt-workflow-assistant"
 TRAE_PREFIX = ""
 WORKBUDDY_PREFIX = f"{MACHINE_NAME}/"
 AGENT_SKILLS_PREFIX = f"{MACHINE_NAME}/"
+HERMES_PREFIX = f"{MACHINE_NAME}/"
 
 
 def parse_args() -> argparse.Namespace:
@@ -154,11 +155,18 @@ def main() -> int:
                 None,
                 args.force,
             ),
+            "hermes": build_archive(
+                root,
+                output_dir / f"fastgpt-workflow-assistant-v{version}_Hermes_folder.zip",
+                HERMES_PREFIX,
+                None,
+                args.force,
+            ),
         }
         manifest = {
             "skill_name": MACHINE_NAME,
             "version": version,
-            "generated_for": ["Trae", "WorkBuddy", "Agent Skills compatible clients"],
+            "generated_for": ["Trae", "WorkBuddy", "Hermes Agent", "Agent Skills compatible clients"],
             "validation_status": "candidate packages; target-client import pending",
             "packages": packages,
         }
