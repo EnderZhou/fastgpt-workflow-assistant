@@ -1,9 +1,9 @@
 ---
 name: fastgpt-workflow-assistant
-description: 当前版本 2.7.0（2026-09-10）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；新增文件上传、多文件解析完整性及跨桌面 Agent 分发支持。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
+description: 当前版本 2.8.0（2026-09-22）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；新增文件上传、多文件解析完整性及跨桌面 Agent 分发支持。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
 ---
 
-# FastGPT工作流生成助手 v2.7.0
+# FastGPT工作流生成助手 v2.8.0
 
 把 FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。FastGPT 的实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
 
@@ -20,10 +20,11 @@ description: 当前版本 2.7.0（2026-09-10）。仅在用户明确涉及 FastG
 
 ## 版本与维护
 
-- 当前版本：`2.7.0`，发布日期：`2026-09-10`。
+- 当前版本：`2.8.0`，发布日期：`2026-09-22`。
 - 创建人：周鹏，通过 GitHub Issues 和 Discussions 反馈优化建议和使用问题。
 - 保持机器名和目录名 `fastgpt-workflow-assistant` 稳定，只更新展示版本和内容。
 - 查询、更新或回滚时读取 [版本与更新](references/版本与更新.md)，以 `assets/skill-version.json` 为版本事实来源。更新必须由用户显式发起。
+- v2.8.0 新增多版本官方资料指南、稳定模型 ID 漂移检查和 Hermes 分发适配；真实平台验证按目标版本分别记录。
 - v2.7.0 新增文件输入与多文件审核工程指南、可复用文件输入配置脚本，以及 Trae、WorkBuddy 和通用 Agent Skills 分发包生成能力；把目标实例回导结构、上传完整性门禁和“准确性必须有权威基准”固化为正式规则。
 - v2.6.5 收紧自动触发边界：仅在明确涉及 FastGPT、其导出 JSON 或相关迁移集成时调用，排除其他平台的独立工作流任务。
 - v2.6.4 修复测试契约与分享接口兼容性，新增应用版本标签校验（FG084）、用例矛盾预检和单目标标识符数量断言。

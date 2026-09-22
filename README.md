@@ -1,6 +1,6 @@
 # FastGPT工作流生成助手
 
-当前公开版本：`v2.7.0`（2026-09-10）。
+当前公开版本：`v2.8.0`（2026-09-22）。
 
 一个面向 FastGPT 及兼容自托管实例的开源 Codex Skill，用于把 AI 应用、Agent 和自动化工作流当作可版本化、可测试、可回滚的软件工程项目来开发。
 
@@ -36,7 +36,7 @@
 - 版本清单：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json`
 - 最新安装包：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip`
 
-每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v2.7.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
+每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v2.8.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
 
 ### 从源码安装
 
@@ -60,7 +60,7 @@ skill/fastgpt-workflow-assistant/
 
 本仓库的 Hermes 适配见 [Hermes 运行指南](skill/fastgpt-workflow-assistant/references/Hermes适配.md)。支持 Python 标准库离线工具和已授权分享接口回归；不要求桌面浏览器、uv 或 Docker 权限。分发脚本会额外生成带单层技能目录的 `*_Hermes_folder.zip`，安装到当前 Hermes profile 实际使用的 skills 根目录或分类目录。
 
-源码中的 Hermes 适配以 commit 区分，目前正式发布版仍为 v2.7.0；已有 Release 附件不会随源码改动自动更新。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
+v2.8.0 正式提供 Hermes 分发包与多版本适配指南。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
 
 ## 多版本 FastGPT
 
@@ -103,14 +103,14 @@ python skill/fastgpt-workflow-assistant/scripts/check_skill_version.py `
 python skill/fastgpt-workflow-assistant/scripts/test_skill.py
 python skill/fastgpt-workflow-assistant/scripts/package_skill.py `
   skill/fastgpt-workflow-assistant `
-  dist/fastgpt-workflow-assistant-v2.7.0.zip `
+  dist/fastgpt-workflow-assistant-v2.8.0.zip `
   --profile slim-production --enforce-versioned-name
 ```
 
 完整仓库压缩包：
 
 ```powershell
-python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v2.7.0.zip --force
+python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v2.8.0.zip --force
 ```
 
 ## 参与完善

@@ -19,7 +19,7 @@ fastgpt-workflow-assistant/
   agents/
 ```
 
-入口只有标准 `name`/`description` frontmatter；`agents/openai.yaml` 是可忽略的 Codex 元数据，不是 Hermes 依赖。安装前审查代码，更新时把旧目录备份到 skills 根目录之外，记录来源 commit 和文件哈希；不要静默覆盖本地改动。版本 2.7.0 加开发分支适配不等于发布了新的正式 Release。
+入口只有标准 `name`/`description` frontmatter；`agents/openai.yaml` 是可忽略的 Codex 元数据，不是 Hermes 依赖。安装前审查代码，更新时把旧目录备份到 skills 根目录之外，记录来源 commit 和文件哈希；不要静默覆盖本地改动。正式包从 v2.8.0 起提供 Hermes 分发目标，源码开发快照须另记 commit，不能冒充正式 Release。
 
 SSH 非交互 shell 可能没有继承后台 Agent 的 `HERMES_HOME`；检查时须使用已核实的同一个 home/profile，不能仅凭 SSH 默认 CLI 的列表判断安装失败。不要打印整个进程环境来查路径，以免暴露密钥。
 
