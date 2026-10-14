@@ -1,29 +1,30 @@
 ---
 name: fastgpt-workflow-assistant
-description: 当前版本 2.8.0（2026-09-22）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；新增文件上传、多文件解析完整性及跨桌面 Agent 分发支持。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
+description: 当前版本 2.8.1（2026-10-13）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；涵盖文件完整性、整批执行、会话隔离及跨桌面 Agent 分发。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
 ---
 
-# FastGPT工作流生成助手 v2.8.0
+# FastGPT工作流生成助手 v2.8.1
 
-把 FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。FastGPT 的实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
+把 LeapRAG/FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。LeapRAG/FastGPT 的实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
 
 ## 适用边界
 
 仅在满足以下任一条件时使用本 Skill：
 
-- 用户明确提到 FastGPT 或 FastGPT 兼容实例；
-- 用户提供可识别的 FastGPT 工作流导出 JSON，并要求检查、修改、导入或测试；
-- 用户明确要求把其他平台的流程迁移到 FastGPT、从 FastGPT 迁出，或与其集成；
+- 用户明确提到 LeapRAG、FastGPT 或 FastGPT 兼容实例；
+- 用户提供可识别的 LeapRAG/FastGPT 工作流导出 JSON，并要求检查、修改、导入或测试；
+- 用户明确要求把其他平台的流程迁移到 LeapRAG/FastGPT、从 LeapRAG/FastGPT 迁出，或与其集成；
 - 用户显式调用 `$fastgpt-workflow-assistant`。
 
-不要用于仅处理 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台的独立工作流，也不要把未指定平台的普通自动化、API 或编程问题默认解释为 FastGPT 任务。跨平台任务中，本 Skill 只负责 FastGPT 侧的设计、转换与验证；另一平台应使用其专用资料或能力。
+不要用于仅处理 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台的独立工作流，也不要把未指定平台的普通自动化、API 或编程问题默认解释为 LeapRAG/FastGPT 任务。跨平台任务中，本 Skill 只负责 LeapRAG/FastGPT 侧的设计、转换与验证；另一平台应使用其专用资料或能力。
 
 ## 版本与维护
 
-- 当前版本：`2.8.0`，发布日期：`2026-09-22`。
-- 创建人：周鹏，通过 GitHub Issues 和 Discussions 反馈优化建议和使用问题。
+- 当前版本：`2.8.1`，发布日期：`2026-10-13`。
+- 维护与反馈通过本仓库Issues进行。
 - 保持机器名和目录名 `fastgpt-workflow-assistant` 稳定，只更新展示版本和内容。
 - 查询、更新或回滚时读取 [版本与更新](references/版本与更新.md)，以 `assets/skill-version.json` 为版本事实来源。更新必须由用户显式发起。
+- v2.8.1 固化对话/Excel字段契约、完整批次与会话隔离、人员查询与通知解耦，以及最新基线和真实解析层验证的边界；不新增业务数量上限或默认审批。
 - v2.8.0 新增多版本官方资料指南、稳定模型 ID 漂移检查和 Hermes 分发适配；真实平台验证按目标版本分别记录。
 - v2.7.0 新增文件输入与多文件审核工程指南、可复用文件输入配置脚本，以及 Trae、WorkBuddy 和通用 Agent Skills 分发包生成能力；把目标实例回导结构、上传完整性门禁和“准确性必须有权威基准”固化为正式规则。
 - v2.6.5 收紧自动触发边界：仅在明确涉及 FastGPT、其导出 JSON 或相关迁移集成时调用，排除其他平台的独立工作流任务。
@@ -38,6 +39,7 @@ description: 当前版本 2.8.0（2026-09-22）。仅在用户明确涉及 FastG
 5. 测试写入、通知、删除、发布等副作用前，说明影响并取得授权；设计确认、幂等、回读、补偿和审计。
 6. 发布时明确区分：候选 JSON、离线验证通过、平台导入通过、运行回归通过。
 7. 文件上传不是单一开关。保存并回导后必须同时核对 `chatConfig.fileSelectConfig`、开始节点的 `userFiles` 输出和所有下游引用；未回读前不得宣称文件链路已配置完成。
+8. 同时处理OA网页文字、Excel、企微上下文及n8n动作时，读取[对话资料与n8n执行契约](references/对话资料与n8n执行契约.md)。必填字段以真实API为准，展示分页不裁剪整批payload；遵循用户最新导出和已取消的范围。
 
 ## 选择任务模式
 

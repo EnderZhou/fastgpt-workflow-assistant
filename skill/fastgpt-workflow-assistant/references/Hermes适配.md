@@ -49,10 +49,10 @@ python3 "$SKILL_DIR/scripts/compare_fastgpt_roundtrip.py" "$WORK_DIR/candidate.j
 公开技能中不保存部署地址、真实 appId/shareId、密码、Cookie 或 Token。分享标识与可选授权值通过受保护环境变量传入，保留现有 `--share-id-env`、`--app-id-env`、`--authorization-env` 参数；不要读取其他客户端的登录状态来凑凭据。
 
 ```bash
-# FASTGPT_TEST_URL 与 FASTGPT_TEST_SHARE_ID 须事先在当前环境安全配置。
+# LEAPRAG_TEST_URL 与 LEAPRAG_TEST_SHARE_ID 须事先在当前环境安全配置。
 # 此命令会真实发送用例，可能消耗模型额度；仅用于已授权的测试应用。
 python3 "$SKILL_DIR/scripts/run_share_api_regression.py" "$WORK_DIR/cases.json" "$WORK_DIR/results.json" \
-  --url "$FASTGPT_TEST_URL" --share-only --share-id-env FASTGPT_TEST_SHARE_ID --gap-seconds 3
+  --url "$LEAPRAG_TEST_URL" --share-only --share-id-env LEAPRAG_TEST_SHARE_ID --gap-seconds 3
 ```
 
 分享回归接口只能执行已有分享应用，不能创建、修改或导入工作流。缺少分享标识或管理入口时交付候选 JSON 和待验证项，不能把接口可达当作应用配置完成，也不能虚构管理 API。
