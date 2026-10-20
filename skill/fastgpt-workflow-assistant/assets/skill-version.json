@@ -1,7 +1,7 @@
 {
   "skill_name": "fastgpt-workflow-assistant",
   "display_name": "FastGPT工作流生成助手",
-  "version": "2.8.2",
+  "version": "2.8.3",
   "release_date": "2026-10-20",
   "version_scheme": "semver",
   "update_channel": "github-releases-explicit",
