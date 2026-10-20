@@ -330,6 +330,19 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
     for source, target, _, _ in edge_tuples:
         adjacency[source].append(target)
         incoming[target] += 1
+    # loopRun enters its exported loopRunStart child without a canvas edge.
+    # Require both ownership records; do not exempt arbitrary orphan children.
+    node_by_id = {node_id(node): node for node in nodes}
+    for child in nodes:
+        if child.get("flowNodeType") != "loopRunStart":
+            continue
+        parent_id = child.get("parentNodeId")
+        parent = node_by_id.get(parent_id, {})
+        listed = next((item.get("value") for item in parent.get("inputs", [])
+                       if item.get("key") == "childrenNodeIdList"), [])
+        if parent.get("flowNodeType") == "loopRun" and isinstance(listed, list) and node_id(child) in listed:
+            adjacency[parent_id].append(node_id(child))
+            incoming[node_id(child)] += 1
     reachable: set[str] = set()
     queue = deque(node_id(node) for node in starts)
     while queue:
