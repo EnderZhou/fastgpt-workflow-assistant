@@ -12,6 +12,9 @@ from typing import Any
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_TEMPLATE = SKILL_ROOT / "assets" / "workflow-templates" / "fastgpt-v481-minimal.json"
+FLAT_TEMPLATE = SKILL_ROOT / "assets" / "workflow-templates__fastgpt-v481-minimal.json"
+if not DEFAULT_TEMPLATE.is_file() and FLAT_TEMPLATE.is_file():
+    DEFAULT_TEMPLATE = FLAT_TEMPLATE
 
 
 def parse_args() -> argparse.Namespace:

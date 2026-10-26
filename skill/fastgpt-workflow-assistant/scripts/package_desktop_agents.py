@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import re
+import posixpath
 import zipfile
 from pathlib import Path
 
@@ -15,7 +16,7 @@ from package_skill import load_version, should_include
 
 MACHINE_NAME = "fastgpt-workflow-assistant"
 TRAE_PREFIX = ""
-WORKBUDDY_PREFIX = f"{MACHINE_NAME}/"
+WORKBUDDY_PREFIX = ""
 AGENT_SKILLS_PREFIX = f"{MACHINE_NAME}/"
 HERMES_PREFIX = f"{MACHINE_NAME}/"
 WORKBUDDY_REQUIRED = (
@@ -112,6 +113,55 @@ def archive_files(root: Path) -> list[Path]:
     )
 
 
+def validate_workbuddy_paths(names: list[str]) -> None:
+    """The marketplace accepts only root files and directory/file entries."""
+    if len(names) != len(set(names)):
+        raise ValueError("WorkBuddy ZIP 存在重名文件")
+    for name in names:
+        parts = name.split("/")
+        if len(parts) > 2 or any(p in {"", ".", ".."} for p in parts) or "\\" in name or ":" in name:
+            raise ValueError(f"WorkBuddy ZIP 目录层级或路径不合法：{name}")
+    if "SKILL.md" not in names:
+        raise ValueError("WorkBuddy ZIP 根目录缺少 SKILL.md")
+
+
+def build_workbuddy_archive(root: Path, output: Path, skill_text: str, force: bool) -> dict[str, object]:
+    if output.exists() and not force:
+        raise FileExistsError(output)
+    files = archive_files(root)
+    mapping = {}
+    for file in files:
+        old = file.relative_to(root).as_posix()
+        parts = old.split("/")
+        mapping[old] = old if len(parts) <= 2 else parts[0] + "/" + "__".join(parts[1:])
+    validate_workbuddy_paths(list(mapping.values()))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for file in files:
+            old = file.relative_to(root).as_posix()
+            new = mapping[old]
+            text = skill_text if old == "SKILL.md" else file.read_text(encoding="utf-8-sig")
+            # Rewrite root-relative documentation and file-relative catalog references.
+            replacements = {}
+            for source, target in mapping.items():
+                if source == target:
+                    continue
+                replacements[source] = target
+                relative_old = posixpath.relpath(source, posixpath.dirname(old) or ".")
+                relative_new = posixpath.relpath(target, posixpath.dirname(new) or ".")
+                replacements[relative_old] = relative_new
+            if replacements:
+                pattern = re.compile("|".join(re.escape(k) for k in sorted(replacements, key=len, reverse=True)))
+                text = pattern.sub(lambda m: replacements[m.group(0)], text)
+            archive.writestr(new, text.encode("utf-8"))
+    with zipfile.ZipFile(output) as archive:
+        validate_workbuddy_paths(archive.namelist())
+        if archive.testzip() is not None:
+            raise ValueError("WorkBuddy ZIP CRC校验失败")
+    return {"file": output.name, "sha256": hashlib.sha256(output.read_bytes()).hexdigest().upper(),
+            "size": output.stat().st_size, "files": len(files), "skill_entry": "SKILL.md", "max_path_parts": 2}
+
+
 def build_archive(
     root: Path,
     output: Path,
@@ -179,10 +229,9 @@ def main() -> int:
                 None,
                 args.force,
             ),
-            "workbuddy": build_archive(
+            "workbuddy": build_workbuddy_archive(
                 root,
                 output_dir / f"fastgpt-workflow-assistant-v{version}_WorkBuddy_import-ready.zip",
-                WORKBUDDY_PREFIX,
                 workbuddy_text,
                 args.force,
             ),

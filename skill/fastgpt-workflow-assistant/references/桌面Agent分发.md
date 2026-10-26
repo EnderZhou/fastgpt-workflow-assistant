@@ -38,16 +38,17 @@ agents/
 
 ## 3. WorkBuddy
 
-WorkBuddy开放平台要求SKILL.md使用YAML frontmatter，且以下8项均为非空字段：`name`、`display_name`、`display_name_en`、`description`、`description_zh`、`description_en`、`version`、`author`。可选examples_zh/examples_en提供使用示例。其结构示例以技能目录包裹资源，因此 WorkBuddy 包采用：
+WorkBuddy开放平台要求SKILL.md使用YAML frontmatter，且以下8项均为非空字段：`name`、`display_name`、`display_name_en`、`description`、`description_zh`、`description_en`、`version`、`author`。可选examples_zh/examples_en提供使用示例。实际开放平台上传反馈限制ZIP路径只能为根文件或目录/文件。2.9.2起专用包采用ZIP根入口，去除外层技能目录，深层资源平铺并同步改写引用：
 
 ```text
-fastgpt-workflow-assistant/
-├── SKILL.md
-├── references/
-├── scripts/
-├── assets/
-└── agents/
+SKILL.md
+references/guide.md
+scripts/create_workflow_from_template.py
+assets/workflow-templates__fastgpt-v481-minimal.json
+agents/openai.yaml
 ```
+
+每个ZIP文件路径最多2段，不允许目录再次嵌套。模板加载器兼容平铺资源；目录映射、目录深度、资源目录清单与解压后模板生成一起回归。官网示意目录不能替代目标上传器的实际报错证据。
 
 WorkBuddy 专用包会在不修改源码 `SKILL.md` 正文的前提下，生成扩展 frontmatter。不要把该扩展文件反向覆盖 Codex 安装目录，避免未知元数据影响其他客户端的校验。
 
