@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-26",
+  "fastgptSkill": "2.9.0 full offline self-test passed",
+  "leapragSkill": "2.9.0 offline smoke passed",
+  "projectRegressionAssertionsPassed": 184,
+  "publishedWorkflowCopies": 8,
+  "fastgptStrictValidationPassed": 3,
+  "n8nCodeAndGraphValidationPassed": 5,
+  "liveImported": false,
+  "liveExecuted": false,
+  "publicWorkflowExports": false
+}
