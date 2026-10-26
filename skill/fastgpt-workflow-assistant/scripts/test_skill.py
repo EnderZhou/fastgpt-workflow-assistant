@@ -27,7 +27,7 @@ def run(*arguments: str, expected: int = 0) -> subprocess.CompletedProcess[str]:
 def main() -> int:
     version_manifest = json.loads((ROOT.parent / "assets" / "skill-version.json").read_text(encoding="utf-8"))
     assert version_manifest["skill_name"] == "fastgpt-workflow-assistant"
-    assert version_manifest["version"] == "2.9.0"
+    assert version_manifest["version"] == "2.9.1"
     assert version_manifest["distribution_profile"] == "slim-production"
 
     skill_text = (ROOT.parent / "SKILL.md").read_text(encoding="utf-8")
@@ -36,10 +36,15 @@ def main() -> int:
     assert all(platform in description for platform in ("n8n", "Dify", "Coze"))
     assert "不用于" in description and "未指定 FastGPT" in description
     assert "## 适用边界" in skill_text
+    # Public reference material must remain reusable across businesses.
+    for reference in ("状态完整性与接口契约.md", "对话资料与n8n执行契约.md", "协同排障与文件边界.md"):
+        text = (ROOT.parent / "references" / reference).read_text(encoding="utf-8")
+        assert not any(term in text for term in ("requested_ttype", "365天", "画方", "火绒", "供应商调试", "LP-Windows", "准入")), reference
+    assert not (ROOT.parent / "references/状态完整性与准入契约.md").exists()
 
     current_version = run(str(ROOT / "check_skill_version.py"), "--json")
     current_version_result = json.loads(current_version.stdout)
-    assert current_version_result["current_version"] == "2.9.0"
+    assert current_version_result["current_version"] == "2.9.1"
     assert current_version_result["status"] == "current_only"
 
     valid = run(str(ROOT / "validate_fastgpt_workflow.py"), str(FIXTURES / "valid-workflow.json"), "--json")
@@ -407,7 +412,7 @@ def main() -> int:
         assert next(item for item in configured_gate["inputs"] if item["key"] == "ifElseList")["value"][0]["list"][0]["variable"] == ["start-1", "userFiles"]
         assert next(item for item in configured_ai["inputs"] if item["key"] == "fileUrlList")["value"] == [["start-1", "userFiles"]]
 
-        package_path = Path(directory) / "fastgpt-workflow-assistant-v2.9.0.zip"
+        package_path = Path(directory) / "fastgpt-workflow-assistant-v2.9.1.zip"
         run(
             str(ROOT / "package_skill.py"), str(ROOT.parent), str(package_path),
             "--profile", "slim-production", "--enforce-versioned-name",
@@ -432,7 +437,7 @@ def main() -> int:
         package_version = run(str(ROOT / "check_skill_version.py"), "--package", str(package_path), "--json")
         package_version_result = json.loads(package_version.stdout)
         assert package_version_result["status"] == "up_to_date"
-        assert package_version_result["package"]["version"] == "2.9.0"
+        assert package_version_result["package"]["version"] == "2.9.1"
 
         desktop_output = temporary_root / "desktop-packages"
         desktop_packages = run(
@@ -440,7 +445,7 @@ def main() -> int:
         )
         desktop_report = json.loads(desktop_packages.stdout)
         assert desktop_report["status"] == "ok"
-        assert desktop_report["version"] == "2.9.0"
+        assert desktop_report["version"] == "2.9.1"
         trae_path = desktop_output / desktop_report["packages"]["trae"]["file"]
         workbuddy_path = desktop_output / desktop_report["packages"]["workbuddy"]["file"]
         agent_skills_path = desktop_output / desktop_report["packages"]["agent_skills"]["file"]
@@ -453,8 +458,25 @@ def main() -> int:
             workbuddy_skill = archive.read(entry).decode("utf-8")
             assert "description_zh:" in workbuddy_skill
             assert "description_en:" in workbuddy_skill
-            assert "version: 2.9.0" in workbuddy_skill
+            assert "version: 2.9.1" in workbuddy_skill
             assert "author:" in workbuddy_skill
+            spec = importlib.util.spec_from_file_location("desktop_packager", ROOT / "package_desktop_agents.py")
+            assert spec and spec.loader
+            desktop_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(desktop_module)
+            desktop_module.validate_workbuddy_frontmatter(workbuddy_skill, version_manifest["version"])
+            # Every marketplace-required field must fail when absent or blank in the frontmatter.
+            for key in desktop_module.WORKBUDDY_REQUIRED:
+                head, body = workbuddy_skill.split("---", 2)[1:]
+                for replacement in (None, f'{key}: ""'):
+                    lines = [replacement if line.startswith(key + ":") else line for line in head.splitlines()]
+                    broken = "---\n" + "\n".join(line for line in lines if line is not None) + "\n---\n" + body
+                    try:
+                        desktop_module.validate_workbuddy_frontmatter(broken, version_manifest["version"])
+                    except ValueError:
+                        pass
+                    else:
+                        raise AssertionError(f"Missing/blank WorkBuddy field accepted: {key}")
         with zipfile.ZipFile(agent_skills_path, "r") as archive:
             assert "fastgpt-workflow-assistant/SKILL.md" in archive.namelist()
 
@@ -477,7 +499,7 @@ def main() -> int:
         same_manifest_path = temporary_root / "latest-same.json"
         same_manifest_path.write_text(json.dumps({
             "skill_name": "fastgpt-workflow-assistant",
-            "latest_version": "2.9.0",
+            "latest_version": "2.9.1",
         }, ensure_ascii=False), encoding="utf-8")
         same_version = run(str(ROOT / "check_skill_version.py"), "--manifest", str(same_manifest_path), "--json")
         assert json.loads(same_version.stdout)["status"] == "up_to_date"
@@ -659,7 +681,7 @@ def main() -> int:
 
     run(str(ROOT / "tests" / "test_loop_reachability.py"))
 
-    print("FastGPT工作流生成助手 v2.9.0 全部离线自测试通过：版本一致性、触发边界、文件输入补丁、变量引用校验、版本标签门禁、行为分类、用例规范检查、标识符隔离、随机用例、版本差异、模板生成、工作流验证、知识库审计、统一断言、接口异常分类、脱敏汇总、精简生产包和桌面Agent专用包。")
+    print("FastGPT工作流生成助手 v2.9.1 全部离线自测试通过：版本一致性、触发边界、文件输入补丁、变量引用校验、版本标签门禁、行为分类、用例规范检查、标识符隔离、随机用例、版本差异、模板生成、工作流验证、知识库审计、统一断言、接口异常分类、脱敏汇总、精简生产包和桌面Agent专用包。")
     return 0
 
 

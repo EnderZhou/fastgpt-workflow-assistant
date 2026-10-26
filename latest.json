@@ -2,18 +2,27 @@
   "schema_version": "1.0",
   "skill_name": "fastgpt-workflow-assistant",
   "display_name": "FastGPT工作流生成助手",
-  "latest_version": "2.9.0",
+  "latest_version": "2.9.1",
   "release_date": "2026-10-26",
-  "package_file": "fastgpt-workflow-assistant-v2.9.0.zip",
+  "package_file": "fastgpt-workflow-assistant-v2.9.1.zip",
   "latest_package_file": "fastgpt-workflow-assistant-latest.zip",
-  "package_sha256": "739D02DC4856EBEA21FAE4A3C973E9D654E147594510F19FE12E5828912091B5",
-  "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v2.9.0/fastgpt-workflow-assistant-v2.9.0.zip",
+  "package_sha256": "0B719B1C5CF8159D0F007C161804BB4838CED3FCA7803DA09FD300446B4F7B83",
+  "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v2.9.1/fastgpt-workflow-assistant-v2.9.1.zip",
   "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip",
   "manifest_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json",
   "raw_manifest_url": "https://raw.githubusercontent.com/EnderZhou/fastgpt-workflow-assistant/main/latest.json",
-  "release_notes_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/tag/v2.9.0",
+  "release_notes_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/tag/v2.9.1",
   "version_scheme": "semver",
   "automatic_update": false,
   "rollback_supported": true,
-  "notes": "v2.9.0：当前意图路由、证据式完整性、显式类型与期限契约、设备多网卡、超时证据及私有工作流发布。"
+  "notes": "v2.9.1：WorkBuddy开放平台专用包与必填元数据校验；公开技能移除公司业务规则。",
+  "client_packages": {
+    "workbuddy": {
+      "package_file": "fastgpt-workflow-assistant-v2.9.1_WorkBuddy_import-ready.zip",
+      "package_sha256": "13E33E83DDD14475E2C3120341DC2EE32E647EC85BC04E69553EE3CDB22EEC5E",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v2.9.1/fastgpt-workflow-assistant-v2.9.1_WorkBuddy_import-ready.zip",
+      "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip",
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md"
+    }
+  }
 }

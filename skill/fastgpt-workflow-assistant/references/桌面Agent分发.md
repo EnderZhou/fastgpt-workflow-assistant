@@ -1,6 +1,6 @@
 # 桌面 Agent 分发
 
-创建或更新面向 Trae、WorkBuddy、Codex 或其他 Agent Skills 客户端的导入包时读取本文件。客户端规范核验日期：2026-09-10。
+创建或更新面向 Trae、WorkBuddy、Codex 或其他 Agent Skills 客户端的导入包时读取本文件。WorkBuddy开放平台规范核验日期：2026-10-26。
 
 ## 1. 共同基线
 
@@ -38,7 +38,7 @@ agents/
 
 ## 3. WorkBuddy
 
-WorkBuddy 开放平台要求 `SKILL.md` 使用 YAML frontmatter，并要求 `description`、`description_zh`、`description_en`、`version` 和 `author`。其结构示例以技能目录包裹资源，因此 WorkBuddy 包采用：
+WorkBuddy开放平台要求SKILL.md使用YAML frontmatter，且以下8项均为非空字段：`name`、`display_name`、`display_name_en`、`description`、`description_zh`、`description_en`、`version`、`author`。可选examples_zh/examples_en提供使用示例。其结构示例以技能目录包裹资源，因此 WorkBuddy 包采用：
 
 ```text
 fastgpt-workflow-assistant/
@@ -50,6 +50,8 @@ fastgpt-workflow-assistant/
 ```
 
 WorkBuddy 专用包会在不修改源码 `SKILL.md` 正文的前提下，生成扩展 frontmatter。不要把该扩展文件反向覆盖 Codex 安装目录，避免未知元数据影响其他客户端的校验。
+
+上传开放平台时选择文件名带 `_WorkBuddy_import-ready.zip` 的专用包；普通 `fastgpt-workflow-assistant-vX.Y.Z.zip` 是通用包，不能替代开放平台发布包。打包器在创建前和读取实际ZIP后均校验frontmatter；回归对每个必填字段的缺失与空值分别测试。
 
 在 WorkBuddy 的“技能 → 添加技能 → 上传技能”中导入 ZIP。导入前检查脚本和权限：本技能没有内置凭据或固定生产地址，但接口回归脚本会在用户显式提供 URL/标识和授权环境变量时访问目标服务，可能把测试问题发送到该服务。
 

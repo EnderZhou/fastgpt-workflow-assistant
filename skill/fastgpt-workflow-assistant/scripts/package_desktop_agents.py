@@ -18,6 +18,37 @@ TRAE_PREFIX = ""
 WORKBUDDY_PREFIX = f"{MACHINE_NAME}/"
 AGENT_SKILLS_PREFIX = f"{MACHINE_NAME}/"
 HERMES_PREFIX = f"{MACHINE_NAME}/"
+WORKBUDDY_REQUIRED = (
+    "name", "version", "display_name", "display_name_en", "description",
+    "description_zh", "description_en", "author",
+)
+
+
+def validate_workbuddy_frontmatter(text: str, expected_version: str) -> None:
+    """Validate the generated flat metadata, not a substring anywhere in the body."""
+    match = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, flags=re.DOTALL)
+    if not match:
+        raise ValueError("WorkBuddy SKILL.md 缺少 YAML frontmatter")
+    fields: dict[str, str] = {}
+    for line in match.group(1).splitlines():
+        if not line or line.startswith((" ", "#")) or ":" not in line:
+            continue
+        key, raw = line.split(":", 1)
+        if key in fields:
+            raise ValueError(f"WorkBuddy frontmatter 重复字段：{key}")
+        value = raw.strip()
+        if value.startswith('"'):
+            value = json.loads(value)
+        elif value.startswith("'") and value.endswith("'"):
+            value = value[1:-1]
+        fields[key] = value
+    for key in WORKBUDDY_REQUIRED:
+        if not isinstance(fields.get(key), str) or not fields[key].strip():
+            raise ValueError(f"WorkBuddy frontmatter 缺少非空字段：{key}")
+    if fields["name"] != MACHINE_NAME or fields["version"] != expected_version:
+        raise ValueError("WorkBuddy 名称或版本与源清单不一致")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", fields["version"]):
+        raise ValueError("WorkBuddy version 必须是语义化版本号")
 
 
 def parse_args() -> argparse.Namespace:
@@ -60,12 +91,18 @@ def workbuddy_skill_text(skill_text: str, version: str, display_name: str) -> st
         f"description_en: {yaml_quote(description_en)}",
         f"version: {version}",
         f"author: {yaml_quote('周鹏')}",
-        "disable-model-invocation: false",
-        "user-invocable: true",
+        "examples_zh:",
+        '  - "根据需求生成 FastGPT 工作流并离线校验"',
+        '  - "检查这份工作流 JSON 的变量引用和连线"',
+        "examples_en:",
+        '  - "Generate and validate a FastGPT workflow from requirements"',
+        '  - "Check variable references and connections in this workflow JSON"',
         "---",
         "",
     ]
-    return "\n".join(frontmatter) + body
+    result = "\n".join(frontmatter) + body
+    validate_workbuddy_frontmatter(result, version)
+    return result
 
 
 def archive_files(root: Path) -> list[Path]:
@@ -132,6 +169,7 @@ def main() -> int:
         display_name = str(version_manifest.get("display_name") or "FastGPT工作流生成助手")
         skill_text = (root / "SKILL.md").read_text(encoding="utf-8-sig")
         workbuddy_text = workbuddy_skill_text(skill_text, version, display_name)
+        # Validate before any archives are created and recheck the actual ZIP entry below.
         output_dir = args.output_directory.resolve()
         packages = {
             "trae": build_archive(
@@ -163,6 +201,10 @@ def main() -> int:
                 args.force,
             ),
         }
+        with zipfile.ZipFile(output_dir / str(packages["workbuddy"]["file"])) as archive:
+            validate_workbuddy_frontmatter(
+                archive.read(f"{WORKBUDDY_PREFIX}SKILL.md").decode("utf-8"), version,
+            )
         manifest = {
             "skill_name": MACHINE_NAME,
             "version": version,

@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EXPECTED_NAME = "fastgpt-workflow-assistant"
-EXPECTED_VERSION = "2.9.0"
+EXPECTED_VERSION = "2.9.1"
 
 
 def run(*arguments: str) -> subprocess.CompletedProcess[str]:

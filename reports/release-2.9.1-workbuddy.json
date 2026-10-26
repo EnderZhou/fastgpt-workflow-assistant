@@ -1,0 +1,18 @@
+{
+  "version": "2.9.1",
+  "workbuddyRequiredFields": [
+    "name",
+    "version",
+    "display_name",
+    "display_name_en",
+    "description",
+    "description_zh",
+    "description_en",
+    "author"
+  ],
+  "missingAndBlankFieldRejectionCases": 16,
+  "companyPolicyRemoved": true,
+  "targetWorkBuddyUploadVerified": false,
+  "internalLeapragUnchanged": true,
+  "workbuddySha256": "13e33e83ddd14475e2c3120341dc2ee32e647ec85bc04e69553ee3cdb22eec5e"
+}
