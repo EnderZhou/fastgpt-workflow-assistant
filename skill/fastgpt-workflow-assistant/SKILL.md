@@ -1,9 +1,9 @@
 ---
 name: fastgpt-workflow-assistant
-description: 当前版本 2.9.2（2026-10-26）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；涵盖文件完整性、整批执行、会话隔离及跨桌面 Agent 分发。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
+description: 当前版本 2.9.3（2026-10-26）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；涵盖文件完整性、整批执行、会话隔离及跨桌面 Agent 分发。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：周鹏；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
 ---
 
-# FastGPT工作流生成助手 v2.9.2
+# FastGPT工作流生成助手 v2.9.3
 
 把 LeapRAG/FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。LeapRAG/FastGPT 的实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
 
@@ -16,11 +16,11 @@ description: 当前版本 2.9.2（2026-10-26）。仅在用户明确涉及 FastG
 - 用户明确要求把其他平台的流程迁移到 LeapRAG/FastGPT、从 LeapRAG/FastGPT 迁出，或与其集成；
 - 用户显式调用 `$fastgpt-workflow-assistant`。
 
-不要用于仅处理 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台的独立工作流，也不要把未指定平台的普通自动化、API 或编程问题默认解释为 LeapRAG/FastGPT 任务。跨平台任务中，本 Skill 只负责 LeapRAG/FastGPT 侧的设计、转换与验证；另一平台应使用其专用资料或能力。
+不要用于仅处理 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台的独立工作流，也不要把未指定平台的普通自动化、API 或编程问题默认解释为 LeapRAG/FastGPT 任务。跨平台任务中，本 Skill 只负责 LeapRAG/FastGPT 侧的设计、转换与验证；此处仅定义两侧输入、输出和状态协议；独立n8n工作流设计不在本技能范围。
 
 ## 版本与维护
 
-- 当前版本：`2.9.2`，发布日期：`2026-10-26`。
+- 当前版本：`2.9.3`，发布日期：`2026-10-26`。
 - 维护与反馈通过本仓库Issues进行。
 - 保持机器名和目录名 `fastgpt-workflow-assistant` 稳定，只更新展示版本和内容。
 - 查询、更新或回滚时读取 [版本与更新](references/版本与更新.md)，以 `assets/skill-version.json` 为版本事实来源。更新必须由用户显式发起。
@@ -38,7 +38,7 @@ description: 当前版本 2.9.2（2026-10-26）。仅在用户明确涉及 FastG
 
 针对欢迎语、功能清单、操作说明、状态和异常回复，读取[企业微信回复排版](references/企业微信回复排版.md)。检查所有相关最终回复节点，使用短标题、空行和分行列表；保持已验证的窄表格，并且只修改展示字段，不污染提取JSON、批次状态或执行命令。
 
-## 状态、完整性与接口契约（v2.9.2）
+## 状态、完整性与接口契约（v2.9.3）
 
 维护多轮对话、文件解析及接口调用时，读取[状态完整性与接口契约](references/状态完整性与接口契约.md)。按当前意图路由、依据真实缺项处理资料、核验字段在接口中的传递并保留响应关联；业务规则由目标项目提供。
 

@@ -125,6 +125,22 @@ def validate_workbuddy_paths(names: list[str]) -> None:
         raise ValueError("WorkBuddy ZIP 根目录缺少 SKILL.md")
 
 
+def validate_workbuddy_resources(archive: zipfile.ZipFile) -> None:
+    """Validate local Markdown links against the resources actually shipped."""
+    names = set(archive.namelist())
+    for name in sorted(names):
+        if not name.endswith(".md"):
+            continue
+        text = archive.read(name).decode("utf-8-sig")
+        for link in re.findall(r"\]\(([^)]+)\)", text):
+            target = link.split("#", 1)[0].strip("<>")
+            if not target or re.match(r"[a-zA-Z]+:", target):
+                continue
+            resolved = posixpath.normpath(posixpath.join(posixpath.dirname(name), target))
+            if resolved not in names:
+                raise ValueError(f"WorkBuddy包缺少引用资源：{name} -> {target}")
+
+
 def build_workbuddy_archive(root: Path, output: Path, skill_text: str, force: bool) -> dict[str, object]:
     if output.exists() and not force:
         raise FileExistsError(output)
@@ -156,6 +172,7 @@ def build_workbuddy_archive(root: Path, output: Path, skill_text: str, force: bo
             archive.writestr(new, text.encode("utf-8"))
     with zipfile.ZipFile(output) as archive:
         validate_workbuddy_paths(archive.namelist())
+        validate_workbuddy_resources(archive)
         if archive.testzip() is not None:
             raise ValueError("WorkBuddy ZIP CRC校验失败")
     return {"file": output.name, "sha256": hashlib.sha256(output.read_bytes()).hexdigest().upper(),

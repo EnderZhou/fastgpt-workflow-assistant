@@ -1,6 +1,6 @@
 {
   "skill": "fastgpt-workflow-assistant",
-  "skill_version": "2.9.2",
+  "skill_version": "2.9.3",
   "target_platform": "LeapRAG-or-FastGPT-compatible",
   "target_version": "REQUIRED",
   "primary_mode": "deterministic-workflow|single-llm|rag-qa|tool-query|action-approval|multi-tool-agent|event-batch|hybrid",
