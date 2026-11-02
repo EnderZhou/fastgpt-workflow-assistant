@@ -1,0 +1,42 @@
+{
+  "skill_name": "fastgpt-workflow-assistant",
+  "version": "2.10.0",
+  "generated_for": [
+    "Trae",
+    "WorkBuddy",
+    "Hermes Agent",
+    "Agent Skills compatible clients"
+  ],
+  "validation_status": "candidate packages; target-client import pending",
+  "packages": {
+    "trae": {
+      "file": "fastgpt-workflow-assistant-v2.10.0_Trae_import-ready.zip",
+      "sha256": "C028AFA4D1A9ADF685033E3B6FD358E80DB2DDA9162172A02EAD3CFEB2B18F2A",
+      "size": 119554,
+      "files": 48,
+      "skill_entry": "SKILL.md"
+    },
+    "workbuddy": {
+      "file": "fastgpt-workflow-assistant-v2.10.0_WorkBuddy_import-ready.zip",
+      "sha256": "244EAC3DF1BFCDBAF614DC9571164E98E316A9CFD0FA355C35B8E014B72A0709",
+      "size": 119344,
+      "files": 48,
+      "skill_entry": "SKILL.md",
+      "max_path_parts": 2
+    },
+    "agent_skills": {
+      "file": "fastgpt-workflow-assistant-v2.10.0_AgentSkills_folder.zip",
+      "sha256": "5993F4B56BA5ABE8EA740AFA1EE66C3FE3E109E7CE2223AEBA6DD771EF05D3F8",
+      "size": 122146,
+      "files": 48,
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md"
+    },
+    "hermes": {
+      "file": "fastgpt-workflow-assistant-v2.10.0_Hermes_folder.zip",
+      "sha256": "5993F4B56BA5ABE8EA740AFA1EE66C3FE3E109E7CE2223AEBA6DD771EF05D3F8",
+      "size": 122146,
+      "files": 48,
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md"
+    }
+  }
+}

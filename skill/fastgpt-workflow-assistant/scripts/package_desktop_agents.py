@@ -91,7 +91,7 @@ def workbuddy_skill_text(skill_text: str, version: str, display_name: str) -> st
         f"description_zh: {yaml_quote(description_zh)}",
         f"description_en: {yaml_quote(description_en)}",
         f"version: {version}",
-        f"author: {yaml_quote('周鹏')}",
+        f"author: {yaml_quote('EnderZhou')}",
         "examples_zh:",
         '  - "根据需求生成 FastGPT 工作流并离线校验"',
         '  - "检查这份工作流 JSON 的变量引用和连线"',

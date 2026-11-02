@@ -3,8 +3,7 @@ message: 如果这个项目对你有帮助，请引用本仓库并保留作者�
 title: FastGPT工作流生成助手
 type: software
 authors:
-  - family-names: Zhou
-    given-names: Peng
-version: 2.7.0
-date-released: 2026-09-10
+  - name: EnderZhou
+version: 2.10.0
+date-released: 2026-11-02
 license: Apache-2.0
