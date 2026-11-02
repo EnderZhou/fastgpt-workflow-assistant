@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import json
 import unicodedata
 from typing import Any
 
@@ -283,6 +284,20 @@ def evaluate_assertions(
         or ipv4_count_exceeded
         or mac_count_exceeded
     )
+    internal_error_count = 0
+    trace_key = spec.get("runtime_trace_variable")
+    if trace_key:
+        variables = result.get("variables")
+        raw_trace = variables.get(str(trace_key)) if isinstance(variables, dict) else None
+        try:
+            trace = json.loads(raw_trace) if isinstance(raw_trace, str) else raw_trace
+            if not isinstance(trace, list):
+                raise ValueError("trace must be a per-turn list")
+            internal_error_count = len(trace)
+            if internal_error_count:
+                runtime_anomaly_flags.append("internal_error_record")
+        except (ValueError, TypeError):
+            runtime_anomaly_flags.append("runtime_trace_invalid_or_missing")
     runtime_anomaly = bool(runtime_anomaly_flags)
     return {
         "text_match_mode": mode,
@@ -298,6 +313,7 @@ def evaluate_assertions(
         "runtime_anomaly_flags": runtime_anomaly_flags,
         "assertion_failed": assertion_failed,
         "runtime_anomaly": runtime_anomaly,
+        "internal_error_count": internal_error_count,
         "answer_chars": answer_chars,
         "answer_too_short": answer_too_short,
         "answer_too_long": answer_too_long,

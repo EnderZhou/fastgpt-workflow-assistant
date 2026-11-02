@@ -1,9 +1,9 @@
 ---
 name: fastgpt-workflow-assistant
-description: 当前版本 2.10.0（2026-11-02）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；涵盖文件完整性、整批执行、会话隔离及跨桌面 Agent 分发。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：EnderZhou；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
+description: 当前版本 2.11.0（2026-11-02）。仅在用户明确涉及 FastGPT、FastGPT 兼容实例、其工作流导出 JSON，或从/向这些平台迁移与集成时，用于构建、修改、调试、测试和发布 AI 应用与工作流；涵盖文件完整性、整批执行、会话隔离及跨桌面 Agent 分发。不用于仅涉及 n8n、Dify、Coze、Make、Zapier、Power Automate 等其他平台，或未指定 FastGPT 的通用自动化任务。创建人：EnderZhou；欢迎通过 GitHub Issues 和 Discussions 反馈问题与建议。
 ---
 
-# FastGPT工作流生成助手 v2.10.0
+# FastGPT工作流生成助手 v2.11.0
 
 把 LeapRAG/FastGPT AI 应用和工作流作为可版本化、可测试、可回滚的软件系统。先判断任务模式，再决定是否使用模型、知识库、工具、状态或人工审批。LeapRAG/FastGPT 的实际能力以目标实例的导出、导入和运行结果为准；通用能力参考 FastGPT 官方文档。
 
@@ -20,7 +20,7 @@ description: 当前版本 2.10.0（2026-11-02）。仅在用户明确涉及 Fast
 
 ## 版本与维护
 
-- 当前版本：`2.10.0`，发布日期：`2026-11-02`。
+- 当前版本：`2.11.0`，发布日期：`2026-11-02`。
 - 维护与反馈通过本仓库Issues进行。
 - 保持机器名和目录名 `fastgpt-workflow-assistant` 稳定，只更新展示版本和内容。
 - 查询、更新或回滚时读取 [版本与更新](references/版本与更新.md)，以 `assets/skill-version.json` 为版本事实来源。更新必须由用户显式发起。
@@ -150,3 +150,7 @@ python scripts/package_skill.py <skill-directory> <output.zip> --profile slim-pr
 ZIP 根目录必须直接包含 `SKILL.md`，不得增加外层技能目录。发布前运行完整源码中的 `scripts/test_skill.py`；导入后运行包内 `scripts/smoke_test_skill.py`。精简包不携带打包脚本、工程调研资料和开发期测试夹具。
 
 分发到 Trae、WorkBuddy 或其他桌面 Agent 时读取 [桌面 Agent 分发](references/桌面Agent分发.md)，并使用 `scripts/package_desktop_agents.py` 生成目标客户端专用包。不同客户端的 ZIP 根结构与 frontmatter 要求不同，不要只改文件名冒充兼容。
+
+## 导入与运行降级验收（v2.11.0）
+
+遇到导入必填错误、知识已命中却无答复、模型异常、核定备用说明或异步上下文丢失时，读取[导入与运行降级验收](references/导入与运行降级验收.md)。FG085检查手动空值；运行错误与备用答复分开计数；正文编辑元数据留在索引外。

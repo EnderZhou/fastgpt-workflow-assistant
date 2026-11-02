@@ -290,6 +290,20 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
         diagnostics.append(issue("FG002", "error", "顶层 edges 必须是数组", path="$.edges", suggested_fix="从目标平台重新导出工作流基线"))
         edges_raw = []
 
+    # Target UI treats a blank manual variable assignment as a missing required value.
+    for ni, node in enumerate(nodes_raw):
+        if not isinstance(node, dict) or node.get("flowNodeType") != "variableUpdate":
+            continue
+        for ii, param in enumerate(node.get("inputs") or []):
+            if param.get("key") != "updateList" or not isinstance(param.get("value"), list):
+                continue
+            for ui, update in enumerate(param["value"]):
+                if not isinstance(update, dict) or update.get("renderType") != "input":
+                    continue
+                value = update.get("value")
+                if value is None or isinstance(value, str) and not value.strip():
+                    diagnostics.append(issue("FG085", "error", "变量更新的必填手动输入值为空", path=f"$.nodes[{ni}].inputs[{ii}].value[{ui}].value", node_id=node_id(node), suggested_fix="使用符合类型和下游解析的非空初始值，或引用已声明输出；到目标平台保存并回导验证"))
+
     nodes = [item for item in nodes_raw if isinstance(item, dict)]
     edges = [item for item in edges_raw if isinstance(item, dict)]
     if len(nodes) != len(nodes_raw):
