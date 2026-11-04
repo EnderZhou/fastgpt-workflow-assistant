@@ -1,6 +1,6 @@
 # FastGPT工作流生成助手
 
-当前公开版本：`v2.11.0`（2026-11-02）。
+当前公开版本：`v2.12.0`（2026-11-02）。
 
 一个面向 FastGPT 及兼容自托管实例的开源 Codex Skill，用于把 AI 应用、Agent 和自动化工作流当作可版本化、可测试、可回滚的软件工程项目来开发。
 
@@ -36,11 +36,11 @@
 - 版本清单：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json`
 - 最新安装包：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip`
 
-每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v2.11.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
+每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v2.12.0.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
 
 ### WorkBuddy 开放平台发布
 
-请下载[WorkBuddy专用最新版](https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip)，不要上传上面的通用包。专用包根目录直接放SKILL.md，资源目录下只放文件，并补齐中英文展示名、描述、版本及作者；详见[客户端分发说明](skill/fastgpt-workflow-assistant/references/桌面Agent分发.md)。2.11.0已离线验证包结构和元数据，尚待目标开放平台实际上传确认。
+请下载[WorkBuddy专用最新版](https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip)，不要上传上面的通用包。专用包根目录直接放SKILL.md，资源目录下只放文件，并补齐中英文展示名、描述、版本及作者；详见[客户端分发说明](skill/fastgpt-workflow-assistant/references/桌面Agent分发.md)。2.12.0已离线验证包结构和元数据，尚待目标开放平台实际上传确认。
 
 公开技能只包含通用工作流设计、调试、测试与发布方法；不内置公司网络准入、设备类型、期限或资产平台策略。
 
@@ -66,7 +66,7 @@ skill/fastgpt-workflow-assistant/
 
 本仓库的 Hermes 适配见 [Hermes 运行指南](skill/fastgpt-workflow-assistant/references/Hermes适配.md)。支持 Python 标准库离线工具和已授权分享接口回归；不要求桌面浏览器、uv 或 Docker 权限。分发脚本会额外生成带单层技能目录的 `*_Hermes_folder.zip`，安装到当前 Hermes profile 实际使用的 skills 根目录或分类目录。
 
-v2.11.0 新增固定知识库全集维护与问答收敛/人工兜底指南，保留 Hermes 等客户端分发及多版本适配。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
+v2.12.0 新增固定知识库全集维护与问答收敛/人工兜底指南，保留 Hermes 等客户端分发及多版本适配。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
 
 ## 多版本 FastGPT
 
@@ -109,14 +109,14 @@ python skill/fastgpt-workflow-assistant/scripts/check_skill_version.py `
 python skill/fastgpt-workflow-assistant/scripts/test_skill.py
 python skill/fastgpt-workflow-assistant/scripts/package_skill.py `
   skill/fastgpt-workflow-assistant `
-  dist/fastgpt-workflow-assistant-v2.11.0.zip `
+  dist/fastgpt-workflow-assistant-v2.12.0.zip `
   --profile slim-production --enforce-versioned-name
 ```
 
 完整仓库压缩包：
 
 ```powershell
-python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v2.11.0.zip --force
+python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v2.12.0.zip --force
 ```
 
 ## 参与完善
@@ -143,3 +143,5 @@ python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_Git
 本仓库按 [Apache License 2.0](LICENSE) 发布。贡献者提交的内容按同一许可证授权。
 
 发布前请完成 [PRE_PUBLISH_CHECKLIST.md](PRE_PUBLISH_CHECKLIST.md)，特别是确认劳动合同、公司制度、保密义务、职务成果归属和第三方材料授权。技术脱敏不能替代权利人授权。
+
+安全审查支持：建设安全原则与已开发JSON只读审查。运行`audit_workflow_security.py`生成脱敏静态清单，需人工及服务端补证，不代表安全认证。
