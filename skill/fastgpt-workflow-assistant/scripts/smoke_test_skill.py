@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EXPECTED_NAME = "fastgpt-workflow-assistant"
-EXPECTED_VERSION = "2.12.0"
+EXPECTED_VERSION = "2.13.0"
 
 
 def run(*arguments: str) -> subprocess.CompletedProcess[str]:
@@ -46,7 +46,7 @@ def main() -> int:
         "compare_fastgpt_roundtrip.py", "generate_test_cases.py",
         "evaluate_agent_results.py", "run_share_api_regression.py",
         "generate_random_test_cases.py", "compare_workflow_versions.py",
-        "configure_file_input.py",
+        "configure_file_input.py", "summarize_chat_export.py",
     ]
     for filename in required:
         script = ROOT / "scripts" / filename
@@ -55,6 +55,7 @@ def main() -> int:
 
     assert (ROOT / "references" / "文件输入与多文件审核.md").is_file()
     assert (ROOT / "references" / "桌面Agent分发.md").is_file()
+    assert (ROOT / "references" / "对话日志驱动优化.md").is_file()
 
     with tempfile.TemporaryDirectory() as directory:
         workflow = Path(directory) / "minimal.json"
