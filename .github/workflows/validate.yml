@@ -18,4 +18,6 @@ jobs:
           python-version: "3.11"
       - name: Run offline self-tests
         run: python skill/fastgpt-workflow-assistant/scripts/test_skill.py
+      - name: Verify WorkBuddy expert package
+        run: python tools/build_workbuddy_expert.py
 

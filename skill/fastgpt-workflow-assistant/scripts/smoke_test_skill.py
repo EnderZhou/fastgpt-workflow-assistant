@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EXPECTED_NAME = "fastgpt-workflow-assistant"
-EXPECTED_VERSION = "2.13.0"
+EXPECTED_VERSION = "3.0.0"
 
 
 def run(*arguments: str) -> subprocess.CompletedProcess[str]:
@@ -47,6 +47,7 @@ def main() -> int:
         "evaluate_agent_results.py", "run_share_api_regression.py",
         "generate_random_test_cases.py", "compare_workflow_versions.py",
         "configure_file_input.py", "summarize_chat_export.py",
+        "inspect_expert_versions.py", "check_route_contract.py",
     ]
     for filename in required:
         script = ROOT / "scripts" / filename

@@ -1,0 +1,60 @@
+{
+  "version": "3.0.0",
+  "date": "2026-11-12",
+  "skill_full_offline_selftest": "passed",
+  "skill_creator_frontmatter_validation": "passed",
+  "new_evidence_tests": {
+    "tests": 10,
+    "result": "passed"
+  },
+  "actual_delivered_json_static_contract": "passed; input-parser and runtime not evaluated",
+  "extra_bypass_negative_case": "rejected with specific forbidden-node finding",
+  "expert": {
+    "expert": "fastgpt-workflow-expert",
+    "expert_version": "3.0.0",
+    "embedded_skill_version": "3.0.0",
+    "file": "fastgpt-workflow-expert-v3.0.0_WorkBuddy_expert.zip",
+    "sha256": "6EC184333F60484CECC90A13CBED59E4F706F37D52D877EE9D802D0E0D0E01F8",
+    "files": 62,
+    "embedded_skill_byte_identical": true,
+    "zip_crc": "passed",
+    "extracted_skill_smoke": "passed",
+    "name_length_limit": 15,
+    "name_characters": {
+      "zh": 12,
+      "en": 14
+    },
+    "client_import": "not_verified",
+    "marketplace_review": "not_submitted",
+    "marketplace_effective_version": "user reported 1.0.0; embedded skill 2.9.3",
+    "version_evidence": {
+      "experts": [
+        {
+          "file": ".codebuddy-plugin/plugin.json",
+          "name": "fastgpt-workflow-expert",
+          "expert_version": "3.0.0",
+          "declared_skills": [
+            "./skills/fastgpt-workflow-assistant"
+          ],
+          "sha256": "6f92a5b495ddcf81df62741abaed4751fd21fe949020a96c3de0ceefe324c4d9"
+        }
+      ],
+      "skills": [
+        {
+          "file": "skills/fastgpt-workflow-assistant/assets/skill-version.json",
+          "name": "fastgpt-workflow-assistant",
+          "skill_version": "3.0.0",
+          "skill_entry_present": true,
+          "sha256": "16405d3588508fd1f775b4fcfa4d7ee12a4cce653f330cbfcf7c6730f47878a5"
+        }
+      ],
+      "warnings": [],
+      "archive_sha256": "6ec184333f60484cecc90a13cbed59e4f706f37d52d877ee9d802d0e0d0e01f8",
+      "platform_version": "unknown",
+      "marketplace_effective_version": "not_checked",
+      "scope": "local metadata only; node version and download time do not establish platform or publication version"
+    }
+  },
+  "target_platform_import": "not_verified",
+  "marketplace_review": "not_submitted"
+}

@@ -2,28 +2,68 @@
   "schema_version": "1.0",
   "skill_name": "fastgpt-workflow-assistant",
   "display_name": "FastGPT工作流生成助手",
-  "latest_version": "2.13.0",
-  "release_date": "2026-11-05",
-  "package_file": "fastgpt-workflow-assistant-v2.13.0.zip",
+  "latest_version": "3.0.0",
+  "release_date": "2026-11-12",
+  "package_file": "fastgpt-workflow-assistant-v3.0.0.zip",
   "latest_package_file": "fastgpt-workflow-assistant-latest.zip",
-  "package_sha256": "18A6F22BC2BA89782206691EF41F38897AD2F16E689408B9CB19B02CA392BCA2",
-  "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v2.13.0/fastgpt-workflow-assistant-v2.13.0.zip",
+  "package_sha256": "68EDF252F3A7B2F3318CEEB374481022624E3D00FA1C581696FEC24920503E7D",
+  "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.0/fastgpt-workflow-assistant-v3.0.0.zip",
   "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip",
   "manifest_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json",
   "raw_manifest_url": "https://raw.githubusercontent.com/EnderZhou/fastgpt-workflow-assistant/main/latest.json",
-  "release_notes_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/tag/v2.13.0",
+  "release_notes_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/tag/v3.0.0",
   "version_scheme": "semver",
   "automatic_update": false,
   "rollback_supported": true,
-  "notes": "v2.13.0：导出对话日志驱动的工作流与知识库优化、CSV/XLSX只读盘点及解析测试。",
+  "notes": "v3.0.0：专家/技能发行号对齐；隐藏版本取证、静态连线路由契约、实测证据及简短交接。",
   "client_packages": {
-    "workbuddy": {
-      "package_file": "fastgpt-workflow-assistant-v2.13.0_WorkBuddy_import-ready.zip",
-      "package_sha256": "685EE1E12B05C1C9D15B91E84A1C79DD3E970A74F4BBA539D066233F06677EEC",
-      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v2.13.0/fastgpt-workflow-assistant-v2.13.0_WorkBuddy_import-ready.zip",
-      "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip",
+    "trae": {
+      "package_file": "fastgpt-workflow-assistant-v3.0.0_Trae_import-ready.zip",
+      "package_sha256": "68EDF252F3A7B2F3318CEEB374481022624E3D00FA1C581696FEC24920503E7D",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.0/fastgpt-workflow-assistant-v3.0.0_Trae_import-ready.zip",
       "skill_entry": "SKILL.md",
-      "max_path_parts": 2
+      "target_client_import": "not_verified"
+    },
+    "workbuddy": {
+      "package_file": "fastgpt-workflow-assistant-v3.0.0_WorkBuddy_import-ready.zip",
+      "package_sha256": "BECCF20399C6317C8B5067050E618AE38C88EFA8F8FDFD3CC160B7BF10847345",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.0/fastgpt-workflow-assistant-v3.0.0_WorkBuddy_import-ready.zip",
+      "skill_entry": "SKILL.md",
+      "target_client_import": "not_verified",
+      "max_path_parts": 2,
+      "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip"
+    },
+    "agent_skills": {
+      "package_file": "fastgpt-workflow-assistant-v3.0.0_AgentSkills_folder.zip",
+      "package_sha256": "F58B09EF8ED19C07B5DD9A170E4FD0153B289F4D540597DC7074E7EBB1926A72",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.0/fastgpt-workflow-assistant-v3.0.0_AgentSkills_folder.zip",
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md",
+      "target_client_import": "not_verified"
+    },
+    "hermes": {
+      "package_file": "fastgpt-workflow-assistant-v3.0.0_Hermes_folder.zip",
+      "package_sha256": "F58B09EF8ED19C07B5DD9A170E4FD0153B289F4D540597DC7074E7EBB1926A72",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.0/fastgpt-workflow-assistant-v3.0.0_Hermes_folder.zip",
+      "skill_entry": "fastgpt-workflow-assistant/SKILL.md",
+      "target_client_import": "not_verified"
     }
+  },
+  "expert_packages": {
+    "workbuddy": {
+      "expert_name": "fastgpt-workflow-expert",
+      "expert_version": "3.0.0",
+      "embedded_skill_version": "3.0.0",
+      "package_file": "fastgpt-workflow-expert-v3.0.0_WorkBuddy_expert.zip",
+      "package_sha256": "6EC184333F60484CECC90A13CBED59E4F706F37D52D877EE9D802D0E0D0E01F8",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.0/fastgpt-workflow-expert-v3.0.0_WorkBuddy_expert.zip",
+      "marketplace_review": "not_submitted",
+      "target_client_import": "not_verified"
+    }
+  },
+  "release_alignment": {
+    "expert_and_skill_versions_aligned": true,
+    "since": "3.0.0",
+    "machine_names_unchanged": true,
+    "workflow_migration_required": false
   }
 }

@@ -1,0 +1,84 @@
+{
+  "name": "fastgpt-workflow-expert",
+  "version": "3.0.0",
+  "description": "Build and troubleshoot FastGPT workflows and knowledge bases; analyze conversation logs and deliver verifiable JSON with version and test evidence.",
+  "author": {
+    "name": "周鹏",
+    "email": "8674537+EnderZhou@users.noreply.github.com"
+  },
+  "agents": [
+    "./agents/fastgpt-workflow-expert.md"
+  ],
+  "expertType": "agent",
+  "agentName": "fastgpt-workflow-expert",
+  "skills": [
+    "./skills/fastgpt-workflow-assistant"
+  ],
+  "homepage": "https://github.com/EnderZhou/fastgpt-workflow-assistant",
+  "license": "Apache-2.0",
+  "displayName": {
+    "zh": "FastGPT工作流专家",
+    "en": "FastGPT Expert"
+  },
+  "profession": {
+    "zh": "FastGPT工作流架构师",
+    "en": "FastGPT Expert"
+  },
+  "displayDescription": {
+    "zh": "FastGPT工作流与知识库专家，提供需求设计与对话日志分析、知识库优化及接口排障，交付可验证的流程",
+    "en": "FastGPT workflows and knowledge bases: design JSON, analyze conversation logs, improve retrieval and answers, troubleshoot APIs and verify changes."
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "04-DataAI",
+  "defaultInitPrompt": {
+    "zh": "根据我的业务需求，设计 FastGPT 工作流并生成待导入验证的 JSON，说明需要绑定的模型和接口。",
+    "en": "Design a FastGPT workflow from my requirements, generate candidate import JSON and list required model and API bindings."
+  },
+  "plugin": "fastgpt-workflow-expert",
+  "tags": [
+    {
+      "zh": "FastGPT工作流",
+      "en": "FastGPT Workflows"
+    },
+    {
+      "zh": "知识库建设与优化",
+      "en": "Knowledge Base Optimization"
+    },
+    {
+      "zh": "对话日志分析与排障",
+      "en": "Log Analysis and Debugging"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "zh": "根据我的业务需求，设计 FastGPT 工作流并生成待导入验证的 JSON，说明需要绑定的模型和接口。",
+      "en": "Design a FastGPT workflow from my requirements, generate candidate import JSON and list required model and API bindings."
+    },
+    {
+      "zh": "检查这份 FastGPT 工作流与测试记录，核对输入路由、连线和证据是否一致，交付修复建议。",
+      "en": "Check this FastGPT workflow and test record for routing, edge and evidence consistency; propose fixes."
+    },
+    {
+      "zh": "结合 FastGPT 对话日志 Excel/CSV、当前工作流 JSON 和知识库，先列出问题案例与改进建议，确认后再输出优化文件。",
+      "en": "Analyze FastGPT conversation logs, the current workflow and knowledge base; list cases and recommendations for my review before producing optimized files."
+    }
+  ],
+  "keywords": [
+    "FastGPT",
+    "LeapRAG",
+    "工作流",
+    "知识库",
+    "RAG",
+    "对话日志",
+    "JSON",
+    "工作流生成",
+    "导入排错",
+    "测试记录",
+    "版本核验",
+    "Skills",
+    "WorkBuddy",
+    "Trae",
+    "Codex",
+    "Hermes"
+  ]
+}
