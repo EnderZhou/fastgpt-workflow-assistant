@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EXPECTED_NAME = "fastgpt-workflow-assistant"
-EXPECTED_VERSION = "3.0.0"
+EXPECTED_VERSION = "3.0.1"
 
 
 def run(*arguments: str) -> subprocess.CompletedProcess[str]:
@@ -39,6 +39,11 @@ def main() -> int:
     assert f"当前版本 {EXPECTED_VERSION}" in skill_text
     assert f"v{EXPECTED_VERSION}" in skill_text and f"v{EXPECTED_VERSION}" in agent_text
     assert release["skill_version"] == EXPECTED_VERSION
+    import re
+    for ref in (ROOT / "references").glob("*.md"):
+        for declared in re.findall(r"(?:本技能|当前技能版本|当前版本)[：: ]+`?[vV]?(\d+\.\d+\.\d+)", ref.read_text(encoding="utf-8")):
+            assert declared == EXPECTED_VERSION, (ref.name, declared)
+
 
     required = [
         "check_skill_version.py", "create_workflow_from_template.py",

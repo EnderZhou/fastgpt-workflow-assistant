@@ -1,6 +1,6 @@
 {
   "name": "fastgpt-workflow-expert",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Build and troubleshoot FastGPT workflows and knowledge bases; analyze conversation logs and deliver verifiable JSON with version and test evidence.",
   "author": {
     "name": "周鹏",

@@ -1,0 +1,46 @@
+{
+  "expert": "fastgpt-workflow-expert",
+  "expert_version": "3.0.1",
+  "embedded_skill_version": "3.0.1",
+  "file": "fastgpt-workflow-expert-v3.0.1_WorkBuddy_expert.zip",
+  "sha256": "823DF0D7D6A9A5C2FE41D1C680083C731BA9B9387630A81F12BCA85D8B5ED482",
+  "files": 62,
+  "embedded_skill_byte_identical": true,
+  "zip_crc": "passed",
+  "extracted_skill_smoke": "passed",
+  "name_length_limit": 15,
+  "name_characters": {
+    "zh": 12,
+    "en": 14
+  },
+  "client_import": "not_verified",
+  "marketplace_review": "not_submitted",
+  "marketplace_effective_version": "user reported 1.0.0; embedded skill 2.9.3",
+  "version_evidence": {
+    "experts": [
+      {
+        "file": ".codebuddy-plugin/plugin.json",
+        "name": "fastgpt-workflow-expert",
+        "expert_version": "3.0.1",
+        "declared_skills": [
+          "./skills/fastgpt-workflow-assistant"
+        ],
+        "sha256": "243faa9365ef2f861a049e6d6722fd301af88322ec151c2b57be9a7d987f6a39"
+      }
+    ],
+    "skills": [
+      {
+        "file": "skills/fastgpt-workflow-assistant/assets/skill-version.json",
+        "name": "fastgpt-workflow-assistant",
+        "skill_version": "3.0.1",
+        "skill_entry_present": true,
+        "sha256": "3f0d381c680bc26b911b0aecd70db21e83396de82f4c098d5cc85f9fde3bb891"
+      }
+    ],
+    "warnings": [],
+    "archive_sha256": "823df0d7d6a9a5c2fe41d1c680083c731ba9b9387630a81f12bca85d8b5ed482",
+    "platform_version": "unknown",
+    "marketplace_effective_version": "not_checked",
+    "scope": "local metadata only; node version and download time do not establish platform or publication version"
+  }
+}
