@@ -1,12 +1,16 @@
 # FastGPT工作流生成助手
 
-当前公开版本：`v3.0.1`（2026-11-12）。
+当前公开版本：`v3.0.2`（2026-11-13）。
 
 一个面向 FastGPT 及兼容自托管实例的开源 Codex Skill，用于把 AI 应用、Agent 和自动化工作流当作可版本化、可测试、可回滚的软件工程项目来开发。
 
 它会先判断需求属于确定性流程、单模型生成、RAG 问答、工具查询、审批写回、多工具 Agent、事件/批量任务还是混合编排，再选择合适的骨架。它可以根据内置版本化模板生成候选工作流 JSON，辅助修改既有 JSON，按需治理知识库，生成测试用例，执行离线校验、接口回归和导入回读检查，并根据真实导入错误与使用反馈持续迭代。
 
 > 本项目是独立维护的社区工具，与 FastGPT、Sealos 及其关联方不存在隶属、赞助或官方背书关系。“FastGPT”等名称及相关商标归其权利人所有。本仓库不分发 FastGPT 源码或品牌素材。
+
+## 3.0.2 更新
+
+专家与技能统一3.0.2。新增有限节点结构/输入绑定/HTTP契约校验、最终JSON的bound行为与回复合同、分享URL直接回归和发行包完整性核对。分享测试优先复用本机有证据的实例协议，未知实例才取证；私有实例配置不随公开包分发。离线通过、平台导入及真实运行按证据分别记录。
 
 ## 主要能力
 
@@ -27,6 +31,16 @@
 - 在用户授权且浏览器可用时，辅助完成非生产实例的导入、配置、运行和回读验证。
 - 内置语义化版本、版本一致性检查、SHA-256 校验、显式更新与回滚方案。
 
+## 发行与安装核对
+
+专家和内置技能版本均为3.0.2，正式构建标识为`3.0.2-20261113-release`。本地迭代修订不是独立公开发行。导入后用实际加载目录核对版本清单；需要检查覆盖完整性时执行：
+
+```text
+python scripts/verify_expert_install.py release-package.zip /actual/installed/directory --output install-report.json
+```
+
+比较只读、不自动修复。公司实例端点、shareId、原始测试日志和本机实例注册表不包含在公开包内；换电脑需迁移自己的受控配置。
+
 ## 安装
 
 ### 下载最新版
@@ -36,11 +50,11 @@
 - 版本清单：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json`
 - 最新安装包：`https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip`
 
-每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v3.0.1.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
+每个 Release 同时保留版本化安装包，例如 `fastgpt-workflow-assistant-v3.0.2.zip`，用于审计与回滚。压缩包根目录直接包含 `SKILL.md`，没有多余的外层目录；精简生产包不携带打包脚本、研发期测试夹具和工程调研资料。
 
 ### WorkBuddy 开放平台发布
 
-请下载[WorkBuddy专用最新版](https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip)，不要上传上面的通用包。专用包根目录直接放SKILL.md，资源目录下只放文件，并补齐中英文展示名、描述、版本及作者；详见[客户端分发说明](skill/fastgpt-workflow-assistant/references/桌面Agent分发.md)。3.0.1已离线验证包结构和元数据，尚待目标开放平台实际上传确认。
+请下载[WorkBuddy专用最新版](https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip)，不要上传上面的通用包。专用包根目录直接放SKILL.md，资源目录下只放文件，并补齐中英文展示名、描述、版本及作者；详见[客户端分发说明](skill/fastgpt-workflow-assistant/references/桌面Agent分发.md)。3.0.2已离线验证包结构和元数据，尚待目标开放平台实际上传确认。
 
 公开技能只包含通用工作流设计、调试、测试与发布方法；不内置公司网络准入、设备类型、期限或资产平台策略。
 
@@ -66,7 +80,7 @@ skill/fastgpt-workflow-assistant/
 
 本仓库的 Hermes 适配见 [Hermes 运行指南](skill/fastgpt-workflow-assistant/references/Hermes适配.md)。支持 Python 标准库离线工具和已授权分享接口回归；不要求桌面浏览器、uv 或 Docker 权限。分发脚本会额外生成带单层技能目录的 `*_Hermes_folder.zip`，安装到当前 Hermes profile 实际使用的 skills 根目录或分类目录。
 
-v3.0.1 新增专家版本证据盘点、交付JSON静态分支图契约与普通用户实测交付指南，并保留日志驱动优化等既有能力。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
+v3.0.2 新增专家版本证据盘点、交付JSON静态分支图契约与普通用户实测交付指南，并保留日志驱动优化等既有能力。安装后检查技能发现与包内冒烟测试，平台导入和真实运行须另外验证。
 
 ## 多版本 FastGPT
 
@@ -109,14 +123,14 @@ python skill/fastgpt-workflow-assistant/scripts/check_skill_version.py `
 python skill/fastgpt-workflow-assistant/scripts/test_skill.py
 python skill/fastgpt-workflow-assistant/scripts/package_skill.py `
   skill/fastgpt-workflow-assistant `
-  dist/fastgpt-workflow-assistant-v3.0.1.zip `
+  dist/fastgpt-workflow-assistant-v3.0.2.zip `
   --profile slim-production --enforce-versioned-name
 ```
 
 完整仓库压缩包：
 
 ```powershell
-python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v3.0.1.zip --force
+python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_GitHub_v3.0.2.zip --force
 ```
 
 ## 参与完善
@@ -146,8 +160,8 @@ python tools/package_repository.py . ../FastGPT-Workflow-Generator-Assistant_Git
 
 安全审查支持：建设安全原则与已开发JSON只读审查。运行`audit_workflow_security.py`生成脱敏静态清单，需人工及服务端补证，不代表安全认证。
 
-## WorkBuddy 专家 v3.0.1
+## WorkBuddy 专家 v3.0.2
 
-下载 Release 中的 `fastgpt-workflow-expert-v3.0.1_WorkBuddy_expert.zip`，在专家更新入口提交。展示名为「FastGPT工作流专家」，内置完整技能3.0.1。专家与技能使用相同发行号但分别记录版本；这是发行管理对齐，不改变现有业务工作流格式。技能上传仍选 `_WorkBuddy_import-ready.zip`。
+下载 Release 中的 `fastgpt-workflow-expert-v3.0.2_WorkBuddy_expert.zip`，在专家更新入口提交。展示名为「FastGPT工作流专家」，内置完整技能3.0.2。专家与技能使用相同发行号但分别记录版本；这是发行管理对齐，不改变现有业务工作流格式。技能上传仍选 `_WorkBuddy_import-ready.zip`。
 
 源码：`expert/`；构建：`python tools/build_workbuddy_expert.py`（先生成对应技能ZIP）。新包的目标客户端导入与市场审核待验证。本地/GitHub版本不等于WorkBuddy市场生效版本。

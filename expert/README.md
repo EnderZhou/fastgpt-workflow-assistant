@@ -1,9 +1,11 @@
-# FastGPT工作流专家 v3.0.1
+# FastGPT工作流专家 v3.0.2
 
-为 FastGPT 及兼容实例设计、修改和排查工作流，生成候选JSON，维护知识库，结合对话日志改进问答和路由，并提供可追溯测试证据。可在WorkBuddy召唤专家；技能另有WorkBuddy、Trae、Codex/AgentSkills、Hermes等分发形式，实际客户端发现和运行分别验证。
+为FastGPT及兼容实例设计、修改和排查工作流，生成候选JSON、维护知识库、分析导出对话日志，并交付可追溯的验证证据。WorkBuddy专家内置同版本技能，无需重复安装独立技能；技能另有Trae、Agent Skills和Hermes分发形式。
 
-新增：专家与内置技能版本完整取证、交付JSON连线契约、反馈纠正、兼容性表述与简短交接。所有原有技能资源保留；专家和技能发行号对齐为3.0.1，稳定机器名不变。无需另装技能。
+本版完善输入绑定、HTTP契约、bound行为和最终回复完整性检查；分享URL测试优先复用本机有证据的协议并通过API执行，未知实例才取证；新增发行ZIP与实际安装目录逐文件核对。
 
-本地候选完成打包与离线检查不代表已上架。维护者确认当前WorkBuddy线上专家1.0.0、内置技能2.9.3，后续旧候选仍在审核；本3.0.1包尚待手动上传审核。上传时选择专家入口，独立技能选skill专用包。安装成功后新会话请专家读取plugin.json与技能版本清单，确认均为3.0.1，避免继续召唤旧版。
+专家版本来自隐藏.codebuddy-plugin/plugin.json；技能版本、修订与build_id来自内置assets/skill-version.json。正式构建为3.0.2-20261113-release。版本号相同不代表文件完整一致，安装后可用内置verify_expert_install.py核对指定发行ZIP。
 
-专家源码：expert/config.json、agent.md、avatar.png；构建器：tools/build_workbuddy_expert.py。原有1.x专家及2.13.0技能包保留供回滚，不覆盖线上条目状态。
+打包、客户端导入/调用、工作流平台导入/运行、GitHub发布与WorkBuddy开放平台审核是独立状态。开放平台由维护者手动上传，本包不声明审核已生效。私有实例注册表保存在用户配置目录，不包含在公开包内。
+
+专家源码为expert/config.json、agent.md、avatar.png；构建器为tools/build_workbuddy_expert.py。稳定机器名不变，历史发行保留用于回退。

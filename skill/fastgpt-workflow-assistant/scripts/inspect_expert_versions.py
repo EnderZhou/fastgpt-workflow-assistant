@@ -44,7 +44,7 @@ def inspect(path: Path) -> dict:
             c = json.loads(data.decode('utf-8-sig'))
             prefix = name[:-len('assets/skill-version.json')]
             skills.append({'file': name, 'name': c.get('skill_name', c.get('name')),
-                           'skill_version': c.get('version'), 'skill_entry_present': prefix + 'SKILL.md' in files,
+                           'skill_version': c.get('version'), 'local_revision': c.get('local_revision'), 'build_id': c.get('build_id'), 'skill_entry_present': prefix + 'SKILL.md' in files,
                            'sha256': hashlib.sha256(data).hexdigest()})
     warnings = []
     for p in plugins:

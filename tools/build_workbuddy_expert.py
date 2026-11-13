@@ -1,6 +1,7 @@
 """Build and verify the single WorkBuddy expert with the released skill embedded unchanged."""
 from pathlib import Path
 import hashlib
+import argparse
 import json
 import os
 import re
@@ -17,6 +18,11 @@ from inspect_expert_versions import inspect
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output-directory', type=Path, default=ROOT / 'dist', help='Read the WorkBuddy skill ZIP and write the expert ZIP/report here')
+    args = parser.parse_args()
+    output_dir = args.output_directory.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
     c = json.loads((ROOT / 'expert/config.json').read_text(encoding='utf-8-sig'))
     version = json.loads((SKILL / 'assets/skill-version.json').read_text(encoding='utf-8-sig'))['version']
     assert c['version'] == version
@@ -29,11 +35,12 @@ def main():
         assert all(isinstance(c[field][lang], str) and c[field][lang].strip() for lang in ('zh', 'en'))
     assert all(len(c['displayName'][lang]) <= 15 for lang in ('zh', 'en'))
     assert 40 <= len(c['displayDescription']['zh']) <= 50
-    source = ROOT / 'dist' / f'fastgpt-workflow-assistant-v{version}_WorkBuddy_import-ready.zip'
+    source = output_dir / f'fastgpt-workflow-assistant-v{version}_WorkBuddy_import-ready.zip'
     with zipfile.ZipFile(source) as z:
         assert z.testzip() is None
         original = {name: z.read(name) for name in z.namelist()}
     assert json.loads(original['assets/skill-version.json'])['version'] == version
+    assert json.loads(original['assets/skill-version.json']) == json.loads((SKILL / 'assets/skill-version.json').read_text(encoding='utf-8-sig')), 'Skill ZIP revision differs from source; rebuild the WorkBuddy skill package first'
     skill_prefix = 'skills/fastgpt-workflow-assistant/'
     entries = {skill_prefix + name: data for name, data in original.items()}
     assert all(not name.startswith('/') and '..' not in name.split('/') and '\\' not in name for name in entries)
@@ -59,7 +66,7 @@ def main():
                 if not target or re.match(r'[a-zA-Z]+:', target):
                     continue
                 assert posixpath.normpath(posixpath.join(posixpath.dirname(name), target)) in entries, (name, target)
-    target = ROOT / 'dist' / f'fastgpt-workflow-expert-v{version}_WorkBuddy_expert.zip'
+    target = output_dir / f'fastgpt-workflow-expert-v{version}_WorkBuddy_expert.zip'
     # Versioned outputs may be regenerated before publication; do not regenerate a published release.
     with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for name, data in sorted(entries.items()):
@@ -84,14 +91,15 @@ def main():
     assert versions['experts'][0]['expert_version'] == versions['skills'][0]['skill_version'] == version
     assert not versions['warnings']
     report = {'expert': c['name'], 'expert_version': version, 'embedded_skill_version': version,
+              'local_revision': json.loads((SKILL / 'assets/skill-version.json').read_text(encoding='utf-8-sig')).get('local_revision'),
               'file': target.name, 'sha256': hashlib.sha256(target.read_bytes()).hexdigest().upper(),
               'files': len(entries), 'embedded_skill_byte_identical': True, 'zip_crc': 'passed',
               'extracted_skill_smoke': 'passed', 'name_length_limit': 15,
               'name_characters': {lang: len(s) for lang, s in c['displayName'].items()},
               'client_import': 'not_verified', 'marketplace_review': 'not_submitted',
-              'marketplace_effective_version': 'user reported 1.0.0; embedded skill 2.9.3',
+              'marketplace_effective_version': 'not_checked',
               'version_evidence': versions}
-    (ROOT / 'dist' / f'fastgpt-workflow-expert-v{version}_report.json').write_text(
+    (output_dir / f'fastgpt-workflow-expert-v{version}_report.json').write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False, indent=2))
 

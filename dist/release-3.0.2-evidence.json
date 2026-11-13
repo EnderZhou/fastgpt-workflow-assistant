@@ -1,0 +1,27 @@
+{
+  "artifact_role": "release-validation-summary",
+  "importable_workflow": false,
+  "version": "3.0.2",
+  "build_id": "3.0.2-20261113-release",
+  "release_date": "2026-11-13",
+  "source_offline_selftests": {
+    "exit_code": 0,
+    "status": "passed"
+  },
+  "release_manifest_hash_check": "passed",
+  "package_crc": "passed",
+  "embedded_skill_byte_identical": true,
+  "extracted_expert_skill_smoke": "passed",
+  "public_content_privacy_scan": "passed",
+  "supported_ci_targets": [
+    "ubuntu-latest",
+    "windows-latest"
+  ],
+  "new_formal_package_client_import": "not_verified",
+  "marketplace_submission": "manual_by_user",
+  "limits": [
+    "Offline contracts do not prove target-platform execution or zero outbound requests.",
+    "API acceptance does not establish deduplication or complete processing of all targets.",
+    "Private instance endpoints, share identifiers, registry and raw logs are excluded."
+  ]
+}

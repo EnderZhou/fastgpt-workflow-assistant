@@ -1,8 +1,8 @@
 {
   "skill_name": "fastgpt-workflow-assistant",
   "display_name": "FastGPT工作流生成助手",
-  "version": "3.0.1",
-  "release_date": "2026-11-12",
+  "version": "3.0.2",
+  "release_date": "2026-11-13",
   "version_scheme": "semver",
   "update_channel": "github-releases-explicit",
   "package_pattern": "fastgpt-workflow-assistant-v{version}.zip",
@@ -24,5 +24,8 @@
   ],
   "desktop_package_script": "scripts/package_desktop_agents.py",
   "import_package_smoke_test": "scripts/smoke_test_skill.py",
-  "full_source_selftest": "scripts/test_skill.py"
+  "full_source_selftest": "scripts/test_skill.py",
+  "local_revision": "release-20261113",
+  "local_revision_date": "2026-11-13",
+  "build_id": "3.0.2-20261113-release"
 }

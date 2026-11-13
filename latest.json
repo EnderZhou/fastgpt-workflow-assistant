@@ -2,48 +2,48 @@
   "schema_version": "1.0",
   "skill_name": "fastgpt-workflow-assistant",
   "display_name": "FastGPT工作流生成助手",
-  "latest_version": "3.0.1",
-  "release_date": "2026-11-12",
-  "package_file": "fastgpt-workflow-assistant-v3.0.1.zip",
+  "latest_version": "3.0.2",
+  "release_date": "2026-11-13",
+  "package_file": "fastgpt-workflow-assistant-v3.0.2.zip",
   "latest_package_file": "fastgpt-workflow-assistant-latest.zip",
-  "package_sha256": "0D7253A78F988D922056B149FC13B011BDDEE3863B8DEC191306F9C19DFBA1C8",
-  "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.1/fastgpt-workflow-assistant-v3.0.1.zip",
+  "package_sha256": "187866D980D19BE297D0F8A8DDAA0C3739FE3C33FDCF03DC3D9801BA0C784F76",
+  "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.2/fastgpt-workflow-assistant-v3.0.2.zip",
   "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-latest.zip",
   "manifest_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/latest.json",
   "raw_manifest_url": "https://raw.githubusercontent.com/EnderZhou/fastgpt-workflow-assistant/main/latest.json",
-  "release_notes_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/tag/v3.0.1",
+  "release_notes_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/tag/v3.0.2",
   "version_scheme": "semver",
   "automatic_update": false,
   "rollback_supported": true,
-  "notes": "v3.0.1：清理当前版本旧表述，改为版本清单取证；增加实际分发包文字漂移检查，保留历史记录。",
+  "notes": "v3.0.2：补齐节点/入参/HTTP/最终回复合同、分享URL直接回归与安装完整性核对；保留首次失败证据与验证边界。",
   "client_packages": {
     "trae": {
-      "package_file": "fastgpt-workflow-assistant-v3.0.1_Trae_import-ready.zip",
-      "package_sha256": "0D7253A78F988D922056B149FC13B011BDDEE3863B8DEC191306F9C19DFBA1C8",
-      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.1/fastgpt-workflow-assistant-v3.0.1_Trae_import-ready.zip",
+      "package_file": "fastgpt-workflow-assistant-v3.0.2_Trae_import-ready.zip",
+      "package_sha256": "187866D980D19BE297D0F8A8DDAA0C3739FE3C33FDCF03DC3D9801BA0C784F76",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.2/fastgpt-workflow-assistant-v3.0.2_Trae_import-ready.zip",
       "skill_entry": "SKILL.md",
       "target_client_import": "not_verified"
     },
     "workbuddy": {
-      "package_file": "fastgpt-workflow-assistant-v3.0.1_WorkBuddy_import-ready.zip",
-      "package_sha256": "46C245256B3A4B65F80DB7441E9C0555621A5725E074EA6E1D4F6E945184043C",
-      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.1/fastgpt-workflow-assistant-v3.0.1_WorkBuddy_import-ready.zip",
+      "package_file": "fastgpt-workflow-assistant-v3.0.2_WorkBuddy_import-ready.zip",
+      "package_sha256": "3E51738E6630EEFD7F3E0A8BFA46D9D976D6AE8F5FF86A7582048DF05A3388D4",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.2/fastgpt-workflow-assistant-v3.0.2_WorkBuddy_import-ready.zip",
       "skill_entry": "SKILL.md",
       "target_client_import": "not_verified",
       "max_path_parts": 2,
       "latest_package_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/latest/download/fastgpt-workflow-assistant-WorkBuddy-latest.zip"
     },
     "agent_skills": {
-      "package_file": "fastgpt-workflow-assistant-v3.0.1_AgentSkills_folder.zip",
-      "package_sha256": "DED172BEC483C61A3AFD171F8C637788FC35ED848462E61CDEAB825B3CB1ABD5",
-      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.1/fastgpt-workflow-assistant-v3.0.1_AgentSkills_folder.zip",
+      "package_file": "fastgpt-workflow-assistant-v3.0.2_AgentSkills_folder.zip",
+      "package_sha256": "D6FDA2D7EA360E496CA95A7AF9AD44F170A1E884D2411AFB5AF3A0DD20C8F779",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.2/fastgpt-workflow-assistant-v3.0.2_AgentSkills_folder.zip",
       "skill_entry": "fastgpt-workflow-assistant/SKILL.md",
       "target_client_import": "not_verified"
     },
     "hermes": {
-      "package_file": "fastgpt-workflow-assistant-v3.0.1_Hermes_folder.zip",
-      "package_sha256": "DED172BEC483C61A3AFD171F8C637788FC35ED848462E61CDEAB825B3CB1ABD5",
-      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.1/fastgpt-workflow-assistant-v3.0.1_Hermes_folder.zip",
+      "package_file": "fastgpt-workflow-assistant-v3.0.2_Hermes_folder.zip",
+      "package_sha256": "D6FDA2D7EA360E496CA95A7AF9AD44F170A1E884D2411AFB5AF3A0DD20C8F779",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.2/fastgpt-workflow-assistant-v3.0.2_Hermes_folder.zip",
       "skill_entry": "fastgpt-workflow-assistant/SKILL.md",
       "target_client_import": "not_verified"
     }
@@ -51,11 +51,11 @@
   "expert_packages": {
     "workbuddy": {
       "expert_name": "fastgpt-workflow-expert",
-      "expert_version": "3.0.1",
-      "embedded_skill_version": "3.0.1",
-      "package_file": "fastgpt-workflow-expert-v3.0.1_WorkBuddy_expert.zip",
-      "package_sha256": "823DF0D7D6A9A5C2FE41D1C680083C731BA9B9387630A81F12BCA85D8B5ED482",
-      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.1/fastgpt-workflow-expert-v3.0.1_WorkBuddy_expert.zip",
+      "expert_version": "3.0.2",
+      "embedded_skill_version": "3.0.2",
+      "package_file": "fastgpt-workflow-expert-v3.0.2_WorkBuddy_expert.zip",
+      "package_sha256": "D0F7BBADA7C8A1F5D652DC47DAB22CC12D2773E4171E3950C98B70DF6974684B",
+      "download_url": "https://github.com/EnderZhou/fastgpt-workflow-assistant/releases/download/v3.0.2/fastgpt-workflow-expert-v3.0.2_WorkBuddy_expert.zip",
       "marketplace_review": "not_submitted",
       "target_client_import": "not_verified"
     }
@@ -65,5 +65,7 @@
     "since": "3.0.0",
     "machine_names_unchanged": true,
     "workflow_migration_required": false
-  }
+  },
+  "build_id": "3.0.2-20261113-release",
+  "local_revision": "release-20261113"
 }

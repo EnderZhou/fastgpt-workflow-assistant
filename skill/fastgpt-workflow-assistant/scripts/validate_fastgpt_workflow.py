@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from model_bindings import collect_model_bindings
+from node_schema_checks import check as check_node_schema
 
 
 SYSTEM_TYPES = {"userGuide", "systemConfig"}
@@ -32,6 +33,8 @@ CODE_NODE_TYPES = {"code", "coderun", "sandbox"}
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("workflow", type=Path, help="工作流导出 JSON")
+    parser.add_argument("--http-contract", type=Path, help="核对门禁与HTTP地址来源及异常出口的显式合同")
+    parser.add_argument("--schema-baseline", type=Path, help="只读节点类型基线；未知扩展给出待核对警告")
     parser.add_argument("--baseline", type=Path, help="用于继承比较的上一版导出 JSON")
     parser.add_argument("--expect-preserve-layout", action="store_true", help="要求原节点坐标不变")
     parser.add_argument("--expect-preserve-models", action="store_true", help="要求模型配置不变")
@@ -404,6 +407,17 @@ def validate(data: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
     for path, value in scan_strings(data):
         if any(pattern.search(value) for pattern in SECRET_PATTERNS):
             diagnostics.append(issue("FG060", "warning", "疑似硬编码密钥；未输出实际值", path=path, suggested_fix="改用平台凭据系统或受保护变量，并轮换已暴露凭据"))
+
+    schema_path = getattr(args, "schema_baseline", None)
+    diagnostics.extend(check_node_schema(nodes, edges, load_json(schema_path) if schema_path else None))
+    http_contract = getattr(args, "http_contract", None)
+    if http_contract:
+        from check_http_contract import check as check_http
+        http_report = check_http(data, load_json(http_contract))
+        for case in http_report["cases"]:
+            for error in case["errors"]:
+                diagnostics.append(issue("FG098", "error", "HTTP执行合同不满足：" + error, suggested_fix="核对门禁与请求配置来源、异常输出和catch边；平台URL引用能力另行验证"))
+
 
     checked_code, code_diagnostics = compile_code_nodes(nodes, args.node)
     diagnostics.extend(code_diagnostics)
